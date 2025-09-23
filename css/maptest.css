@@ -1,0 +1,564 @@
+/* --- Global & Body Styles --- */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    overflow: hidden;
+}
+
+/* --- Map & Containers --- */
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.top-bar-container {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+.top-bar-left, .top-bar-right {
+    display: flex;
+    gap: 10px;
+}
+
+.bottom-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .top-bar-container {
+        flex-direction: row;
+        align-items: center;
+    }
+    .top-row {
+        width: auto;
+    }
+    .bottom-row {
+        width: auto;
+    }
+}
+
+
+.bottom-container {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --- Buttons --- */
+.controls {
+    display: flex;
+    gap: 10px;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.controls button {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color: 0.3s ease;
+}
+
+.controls button:hover {
+    background-color: #0056b3;
+}
+
+.controls button.tracking {
+    background-color: #dc3545;
+}
+
+.top-bar-button, .community-button, .donate-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #333;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: background-color: 0.3s;
+    white-space: nowrap;
+    text-decoration: none;
+    flex-grow: 1;
+}
+.top-bar-button:disabled {
+    background-color: rgba(230, 230, 230, 0.5);
+    color: #999;
+    cursor: not-allowed;
+    backdrop-filter: none;
+}
+.top-bar-button:disabled:hover {
+    background-color: rgba(230, 230, 230, 0.5);
+}
+
+.top-bar-button:hover, .community-button.off:hover, .donate-button:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.community-button {
+    background-color: #28a745;
+    color: white;
+    border-color: transparent;
+}
+.community-button:hover {
+    opacity: 0.9;
+}
+.community-button.off {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #333;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* --- Modals --- */
+.modal-overlay, .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.modal-button {
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    font-size: 16px;
+    border-radius: 5px;
+    border: none;
+    color: white;
+    background-color: #007bff;
+    cursor: pointer;
+}
+.modal-button:hover {
+    opacity: 0.9;
+}
+.modal-button.edit-profile {
+    background-color: #5a6268;
+}
+.modal-button.manage {
+    background-color: #17a2b8;
+}
+.modal-button.publish {
+    background-color: #ffc107;
+    color: #000;
+}
+.modal-button.export {
+    background-color: #28a745;
+}
+.delete-account-button {
+    background-color: #dc3545;
+}
+.delete-account-button:hover {
+    background-color: #c82333;
+}
+
+
+/* --- Specific Modals & Lists --- */
+#termsModal .modal-content, #infoModal .modal-content {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+.info-modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 10px 0;
+}
+.terms-box {
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    flex-grow: 1;
+}
+.agreement-section {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#agreeBtn {
+    padding: 12px; font-size: 18px; border: none; border-radius: 5px;
+    color: white; background-color: #007bff; cursor: pointer;
+    transition: background-color: 0.2s;
+}
+#agreeBtn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.info-list {
+    padding-left: 20px;
+}
+.info-list li {
+    margin-bottom: 10px;
+}
+.tos-link-container {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
+.tos-link-container a {
+    color: #007bff;
+    text-decoration: none;
+}
+.tos-link-container a:hover {
+    text-decoration: underline;
+}
+
+.auth-modal {
+    max-width: 400px;
+    text-align: center;
+}
+#authSubtitle a {
+    color: #007bff; text-decoration: none; cursor: pointer;
+}
+#authSubtitle a:hover {
+    text-decoration: underline;
+}
+.auth-form {
+    display: flex; flex-direction: column; gap: 10px; margin: 20px 0;
+}
+.auth-form.login-mode #usernameInput,
+.auth-form.login-mode #ageGateContainer {
+    display: none;
+}
+.auth-form.signup-mode #usernameInput,
+.auth-form.signup-mode #ageGateContainer {
+    display: flex;
+}
+.auth-form input {
+    padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px;
+}
+#authActionBtn {
+    padding: 12px; font-size: 16px; border: none; border-radius: 5px;
+    color: white; background-color: #007bff; cursor: pointer;
+    transition: background-color: 0.2s;
+}
+#authActionBtn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.age-gate-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: #333;
+}
+.skip-button {
+    background-color: #6c757d; color: white; border: none; padding: 12px;
+    width: 100%; border-radius: 5px; font-size: 16px; cursor: pointer;
+}
+.error-message {
+    color: #dc3545; margin-top: 15px; min-height: 20px; font-size: 14px;
+}
+
+#sessionList, #localSessionList, #publishedRoutesList {
+    list-style: none; padding: 0; margin-top: 20px;
+    max-height: 40vh; overflow-y: auto; border: 1px solid #eee;
+}
+#sessionList li, #localSessionList li, #publishedRoutesList li {
+    padding: 15px; border-bottom: 1px solid #eee; text-align: left;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+#publishedRoutesList li {
+    cursor: default;
+}
+#sessionList li:hover, #localSessionList li:hover {
+    background-color: #f5f5f5; cursor: pointer;
+}
+.session-date {
+    font-size: 0.8em; color: #666; white-space: nowrap;
+}
+.delete-session-btn {
+    padding: 5px 10px; font-size: 12px; border: none;
+    background-color: #dc3545; color: white; border-radius: 5px;
+    cursor: pointer; transition: background-color: 0.2s;
+}
+.delete-session-btn:hover {
+    background-color: #c82333;
+}
+
+.disclaimer-text {
+    font-size: 0.9em;
+    font-style: italic;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 15px 0;
+    border-left: 4px solid #17a2b8;
+}
+
+.pin-popup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+.pin-popup-form input, .pin-popup-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.pin-popup-form button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+.profile-form label {
+    text-align: left;
+    font-weight: bold;
+    margin-bottom: -10px;
+}
+.profile-form input,
+.profile-form textarea {
+    width: 95%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: inherit;
+}
+.profile-form textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.profile-modal {
+    max-width: 450px;
+    text-align: center;
+}
+.profile-location {
+    font-style: italic;
+    color: #6c757d;
+    margin-top: -10px;
+}
+.profile-bio {
+    margin-top: 20px;
+    white-space: pre-wrap;
+}
+.badge-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 10px 0;
+}
+.badge-item {
+    width: 60px;
+    height: 60px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    border: 2px solid #e0e0e0;
+    cursor: help;
+    transition: transform 0.2s;
+}
+.badge-item:hover {
+    transform: scale(1.1);
+}
+.no-badges-message {
+    font-style: italic;
+    color: #888;
+}
+.support-button {
+    background-color: #ffc107;
+    color: #000;
+    margin-top: 20px;
+    display: none;
+}
+
+.safety-modal {
+    max-width: 480px;
+    text-align: center;
+}
+
+.summary-modal {
+    max-width: 480px;
+    text-align: center;
+}
+.summary-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 25px 0;
+    padding: 20px 0;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+.summary-stats > div {
+    display: flex;
+    flex-direction: column;
+}
+.stat-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #007bff;
+}
+.stat-label {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+.leaderboard-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+.leaderboard-tab {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+.leaderboard-tab.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+.leaderboard-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+.leaderboard-list li {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+.leaderboard-list li:first-child {
+    background-color: #ffd700;
+    font-weight: bold;
+}
+.leaderboard-list li:nth-child(2) {
+    background-color: #c0c0c0;
+}
+.leaderboard-list li:nth-child(3) {
+    background-color: #cd7f32;
+}
+.leaderboard-rank {
+    font-size: 1.2em;
+    font-weight: bold;
+    width: 40px;
+    text-align: center;
+}
+.leaderboard-name {
+    flex-grow: 1;
+    margin-left: 15px;
+}
+.leaderboard-score {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* --- User Status Display & Photo Markers --- */
+.user-status-display {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+#logoutBtn, #loginSignupBtn {
+    border: none; background-color: #6c757d; color: white;
+    padding: 5px 10px; border-radius: 5px; cursor: pointer;
+}
+.photo-marker {
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%;
+    border: 2px solid #fff; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    background-size: cover; 
+    background-position: center; 
+    cursor: pointer;
+}
