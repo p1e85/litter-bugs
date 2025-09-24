@@ -296,6 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchAndDisplayLeaderboard('totalPins');
     });
 
+    leaderboardModalCloseBtn.addEventListener('click', () => {
+        leaderboardModal.style.display = 'none';
+    });
+
     leaderboardTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             leaderboardTabs.forEach(t => t.classList.remove('active'));
