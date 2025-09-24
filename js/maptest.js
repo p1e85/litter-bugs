@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaderboardModal = document.getElementById('leaderboardModal');
     const leaderboardModalCloseBtn = leaderboardModal.querySelector('.close-btn');
     const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
+    const myStatsBtn = document.getElementById('myStatsBtn');
 
     // --- START: ACTIVATED SUMMARY FEATURE ELEMENTS ---
     const summaryModal = document.getElementById('summaryModal');
@@ -287,14 +288,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     leaderboardBtn.addEventListener('click', () => {
         leaderboardModal.style.display = 'flex';
+        // Ensure leaderboard is the default view
+        document.getElementById('leaderboardList').style.display = 'block';
+        document.getElementById('myStatsContainer').style.display = 'none';
+        leaderboardTabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('.leaderboard-tab[data-metric="totalPins"]').classList.add('active');
         fetchAndDisplayLeaderboard('totalPins');
     });
-    leaderboardModalCloseBtn.addEventListener('click', () => leaderboardModal.style.display = 'none');
+
     leaderboardTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             leaderboardTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            fetchAndDisplayLeaderboard(tab.dataset.metric);
+            
+            if (tab.id === 'myStatsBtn') {
+                document.getElementById('leaderboardList').style.display = 'none';
+                document.getElementById('myStatsContainer').style.display = 'block';
+                fetchAndDisplayMyStats();
+            } else {
+                document.getElementById('leaderboardList').style.display = 'block';
+                document.getElementById('myStatsContainer').style.display = 'none';
+                fetchAndDisplayLeaderboard(tab.dataset.metric);
+            }
         });
     });
     
@@ -975,10 +990,11 @@ function calculateRouteDistance(coordinates) {
     }
     return totalDistance;
 }
+
 async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
-    if (!leaderboardList) return;
     leaderboardList.innerHTML = '<li>Loading...</li>';
+
     try {
         const profilesRef = collection(db, "publicProfiles");
         const q = query(profilesRef, orderBy(metric, "desc"), limit(10));
@@ -995,8 +1011,9 @@ async function fetchAndDisplayLeaderboard(metric) {
             const profileData = doc.data();
             const li = document.createElement('li');
             
+            // MODIFIED: Convert meters to miles for display
             const score = metric === 'totalDistance'
-                ? `${(profileData.totalDistance / 1000).toFixed(2)} km`
+                ? `${(profileData.totalDistance * 0.000621371).toFixed(2)} mi`
                 : profileData.totalPins;
 
             li.innerHTML = `
@@ -1015,3 +1032,74 @@ async function fetchAndDisplayLeaderboard(metric) {
         }
     }
 }
+
+// NEW: Function to fetch and display the current user's stats
+async function fetchAndDisplayMyStats() {
+    const myStatsContainer = document.getElementById('myStatsContainer');
+    myStatsContainer.innerHTML = ''; // Clear previous content
+
+    if (!currentUser) {
+        myStatsContainer.innerHTML = '<p class="login-prompt">Please log in to view your personal stats.</p>';
+        return;
+    }
+
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", currentUser.uid);
+        const publicProfileSnap = await getDoc(publicProfileRef);
+
+        if (!publicProfileSnap.exists()) {
+            myStatsContainer.innerHTML = '<p class="login-prompt">Could not find your profile data.</p>';
+            return;
+        }
+
+        const profileData = publicProfileSnap.data();
+        const distanceMiles = (profileData.totalDistance * 0.000621371).toFixed(2);
+        
+        // Build the HTML for the stats display
+        let statsHTML = `
+            <div class="my-stats-grid">
+                <div class="stat-card">
+                    <div class="my-stats-value">${profileData.totalPins || 0}</div>
+                    <div class="my-stats-label">Items Pinned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="my-stats-value">${distanceMiles}</div>
+                    <div class="my-stats-label">Miles Cleaned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="my-stats-value">${profileData.totalRoutes || 0}</div>
+                    <div class="my-stats-label">Routes Completed</div>
+                </div>
+            </div>
+            <h4>My Achievements</h4>
+            <div class="my-stats-badges">
+                <div class="badge-container">
+        `;
+
+        const userBadges = profileData.badges || {};
+        let earnedBadgesCount = 0;
+        for (const badgeKey in allBadges) {
+            if (userBadges[badgeKey] === true) {
+                earnedBadgesCount++;
+                const badgeInfo = allBadges[badgeKey];
+                statsHTML += `
+                    <div class="badge-item" title="${badgeInfo.name}: ${badgeInfo.description}">
+                        ${badgeInfo.icon}
+                    </div>
+                `;
+            }
+        }
+
+        if (earnedBadgesCount === 0) {
+            statsHTML += '<p class="no-badges-message">You haven\'t earned any badges yet. Keep cleaning!</p>';
+        }
+
+        statsHTML += `</div></div>`;
+        myStatsContainer.innerHTML = statsHTML;
+
+    } catch (error) {
+        console.error("Error fetching your stats:", error);
+        myStatsContainer.innerHTML = '<p class="login-prompt">Could not load your stats.</p>';
+    }
+}
+
