@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     map.on('load', () => {
         initializeMapLayers();
+        setupPoiClickListeners(); // <<< NEW: Activate the landmark click listeners
     });
     
     map.on('zoom', () => {
@@ -1107,3 +1108,53 @@ async function fetchAndDisplayMyStats() {
     }
 }
 
+function setupPoiClickListeners() {
+    // These are the layer IDs that Mapbox uses for landmarks, parks, etc.
+    const poiLayers = [
+        'poi-label', 
+        'transit-label',
+        'airport-label',
+        'natural-point-label',
+        'natural-line-label',
+        'water-point-label',
+        'water-line-label',
+        'waterway-label'
+    ];
+
+    poiLayers.forEach(layerId => {
+        // Check if the layer exists before adding a listener
+        if (map.getLayer(layerId)) {
+            map.on('click', layerId, (e) => {
+                // When a click event occurs on a feature in the POI layer...
+                if (e.features.length > 0) {
+                    const feature = e.features[0];
+                    const coordinates = feature.geometry.coordinates.slice();
+                    const name = feature.properties.name;
+
+                    // Ensure that if the map is zoomed out such that multiple
+                    // copies of the feature are visible, the popup appears
+                    // over the copy being pointed to.
+                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                    }
+
+                    // Create a popup and add it to the map.
+                    new mapboxgl.Popup()
+                        .setLngLat(coordinates)
+                        .setHTML(`<strong>${name}</strong>`)
+                        .addTo(map);
+                }
+            });
+
+            // Change the cursor to a pointer when the mouse is over the POI layer.
+            map.on('mouseenter', layerId, () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            // Change it back to a pointer when it leaves.
+            map.on('mouseleave', layerId, () => {
+                map.getCanvas().style.cursor = '';
+            });
+        }
+    });
+}
