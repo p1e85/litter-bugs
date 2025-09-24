@@ -171,10 +171,17 @@
             <span class="close-btn">&times;</span>
             <h2>Community Leaderboard</h2>
             <div class="leaderboard-tabs">
+                <button class="leaderboard-tab" id="myStatsBtn">My Stats</button>
                 <button class="leaderboard-tab active" data-metric="totalPins">Most Pins Collected</button>
                 <button class="leaderboard-tab" data-metric="totalDistance">Most Distance Cleaned</button>
             </div>
             <ol id="leaderboardList" class="leaderboard-list"></ol>
+
+            <!-- NEW Container for Personal Stats -->
+            <div id="myStatsContainer" class="my-stats-container" style="display: none;">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            
         </div>
     </div>
 
