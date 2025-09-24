@@ -537,6 +537,48 @@ body {
     color: #007bff;
 }
 
+/* NEW: Styles for the "My Stats" section in the leaderboard */
+.my-stats-container {
+    text-align: center;
+    padding-top: 20px;
+}
+
+.my-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.my-stats-value {
+    font-size: 1.75em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.my-stats-label {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.my-stats-badges .badge-container {
+    margin-top: 10px;
+}
+
+.login-prompt {
+    font-style: italic;
+    color: #6c757d;
+}
+
+
 /* --- User Status Display & Photo Markers --- */
 .user-status-display {
     display: flex;
