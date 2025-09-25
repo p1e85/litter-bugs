@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const meetupDescriptionInput = document.getElementById('meetupDescriptionInput');
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
+    const shareBtn = document.getElementById('shareBtn');
 
     // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
@@ -297,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     summaryModalCloseBtn.addEventListener('click', () => summaryModal.style.display = 'none');
     summaryOkBtn.addEventListener('click', () => summaryModal.style.display = 'none');
+    shareBtn.addEventListener('click', shareCleanupResults);
     leaderboardBtn.addEventListener('click', () => {
         leaderboardModal.style.display = 'flex';
         document.getElementById('leaderboardList').style.display = 'block';
@@ -1434,4 +1436,39 @@ function openViewMeetupsModal(poiName) {
             meetupsList.appendChild(li);
         });
     });
+}
+
+// --- NEW: Function to handle sharing cleanup results ---
+/**
+ * Gathers stats from the summary modal and uses the Web Share API.
+ */
+async function shareCleanupResults() {
+    const distance = document.getElementById('summaryDistance').textContent;
+    const pins = document.getElementById('summaryPins').textContent;
+
+    const shareText = `I just cleaned up ${distance} and pinned ${pins} items with the Litter Bugs app! Join the movement and help clean our planet. #LitterBugs #Cleanup`;
+
+    const shareData = {
+        title: 'My Litter Bugs Cleanup!',
+        text: shareText,
+        url: 'https://www.p1creations.com/map.html' // Link to the app
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+            console.log('Cleanup shared successfully!');
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    } else {
+        // Fallback for desktop browsers: copy to clipboard
+        try {
+            await navigator.clipboard.writeText(shareText + " " + shareData.url);
+            alert('Cleanup stats copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+            alert('Sharing is not supported on this browser. You can copy the stats from the summary.');
+        }
+    }
 }
