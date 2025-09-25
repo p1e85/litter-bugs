@@ -185,6 +185,43 @@
         </div>
     </div>
 
+    <!-- NEW: Schedule a Meetup Modal -->
+    <div id="meetupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Schedule a Meetup</h2>
+            <p>Organize a cleanup event at: <strong id="meetupLocationName"></strong></p>
+            <div id="meetupForm" class="profile-form">
+                <input type="hidden" id="poiNameInput">
+                <label for="meetupTitleInput">Meetup Title</label>
+                <input type="text" id="meetupTitleInput" placeholder="e.g., Saturday Morning Cleanup" maxlength="50">
+                <label for="meetupDescriptionInput">Description</label>
+                <textarea id="meetupDescriptionInput" placeholder="e.g., Let's meet by the main entrance at 9 AM!" maxlength="200"></textarea>
+                
+                <div class="safety-disclaimer">
+                    <strong>Safety First:</strong> You are organizing a public event. For your safety and the safety of others, always meet in well-lit, public places and be aware of your surroundings. Litter Bugs is a platform for connecting people; we are not responsible for any incidents that occur at user-organized meetups.
+                </div>
+                <div class="agreement-section">
+                    <input type="checkbox" id="safetyCheckbox">
+                    <label for="safetyCheckbox">I understand and agree to the safety guidelines.</label>
+                </div>
+                <p id="profanityWarning" class="error-message" style="display: none;">Please use appropriate language.</p>
+                <button id="createMeetupBtn" class="modal-button" disabled>Create Meetup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: View Scheduled Meetups Modal -->
+    <div id="viewMeetupsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Scheduled Meetups at <strong id="viewMeetupsLocationName"></strong></h2>
+            <ul id="meetupsList" class="session-list">
+                <!-- Meetups will be populated here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+    
     <!-- Map container -->
     <div id='map'></div>
 
