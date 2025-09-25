@@ -11,6 +11,9 @@ import {
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+// NEW: Add a variable to hold the profanity list
+const profanityList = ["word1", "word2", "word3"]; // Add inappropriate words here
+
 // --- Litter Bugs V2 Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyCE1b6VtJjUs0O5YvyLjeslxuHC8UlgJUM",
@@ -126,6 +129,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaderboardModalCloseBtn = leaderboardModal.querySelector('.close-btn');
     const leaderboardTabs = document.querySelectorAll('.leaderboard-tab');
     const myStatsBtn = document.getElementById('myStatsBtn');
+    const meetupModal = document.getElementById('meetupModal');
+    const meetupModalCloseBtn = meetupModal.querySelector('.close-btn');
+    const createMeetupBtn = document.getElementById('createMeetupBtn');
+    const safetyCheckbox = document.getElementById('safetyCheckbox');
+    const meetupTitleInput = document.getElementById('meetupTitleInput');
+    const meetupDescriptionInput = document.getElementById('meetupDescriptionInput');
+    
+    const viewMeetupsModal = document.getElementById('viewMeetupsModal');
+    const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
 
     // --- START: ACTIVATED SUMMARY FEATURE ELEMENTS ---
     const summaryModal = document.getElementById('summaryModal');
@@ -324,6 +336,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modals.includes(event.target)) {
             modals.forEach(m => m.style.display = 'none');
         }
+    });
+
+    meetupModalCloseBtn.addEventListener('click', () => meetupModal.style.display = 'none');
+    viewMeetupsModalCloseBtn.addEventListener('click', () => viewMeetupsModal.style.display = 'none');
+
+    // Add listeners to validate the meetup form in real-time
+    safetyCheckbox.addEventListener('change', validateMeetupForm);
+    meetupTitleInput.addEventListener('input', validateMeetupForm);
+    meetupDescriptionInput.addEventListener('input', validateMeetupForm);
+    createMeetupBtn.addEventListener('click', handleMeetupSubmit);
+
+    window.addEventListener('click', (event) => {
+        const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal, meetupModal, viewMeetupsModal];
+        if (modals.includes(event.target)) modals.forEach(m => m.style.display = 'none');
     });
     
     saveBtn.addEventListener('click', saveSession);
@@ -1109,52 +1135,158 @@ async function fetchAndDisplayMyStats() {
 }
 
 function setupPoiClickListeners() {
-    // These are the layer IDs that Mapbox uses for landmarks, parks, etc.
-    const poiLayers = [
-        'poi-label', 
-        'transit-label',
-        'airport-label',
-        'natural-point-label',
-        'natural-line-label',
-        'water-point-label',
-        'water-line-label',
-        'waterway-label'
-    ];
-
+    const poiLayers = [ 'poi-label', 'transit-label', 'airport-label', 'natural-point-label', 'natural-line-label', 'water-point-label', 'water-line-label', 'waterway-label' ];
     poiLayers.forEach(layerId => {
-        // Check if the layer exists before adding a listener
         if (map.getLayer(layerId)) {
             map.on('click', layerId, (e) => {
-                // When a click event occurs on a feature in the POI layer...
                 if (e.features.length > 0) {
                     const feature = e.features[0];
-                    const coordinates = feature.geometry.coordinates.slice();
+                    const coordinates = e.lngLat;
                     const name = feature.properties.name;
 
-                    // Ensure that if the map is zoomed out such that multiple
-                    // copies of the feature are visible, the popup appears
-                    // over the copy being pointed to.
-                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                    }
+                    const popupHTML = `
+                        <div>
+                            <strong>${name}</strong>
+                            <div class="poi-popup-buttons">
+                                <button class="schedule-btn">Schedule Meetup</button>
+                                <button class="view-btn">View Meetups</button>
+                            </div>
+                        </div>
+                    `;
 
-                    // Create a popup and add it to the map.
-                    new mapboxgl.Popup()
+                    const popup = new mapboxgl.Popup()
                         .setLngLat(coordinates)
-                        .setHTML(`<strong>${name}</strong>`)
+                        .setHTML(popupHTML)
                         .addTo(map);
+                    
+                    // Add event listeners to the new buttons inside the popup
+                    popup.getElement().querySelector('.schedule-btn').addEventListener('click', () => {
+                        openMeetupModal(name);
+                        popup.remove();
+                    });
+                    popup.getElement().querySelector('.view-btn').addEventListener('click', () => {
+                        openViewMeetupsModal(name);
+                        popup.remove();
+                    });
                 }
             });
-
-            // Change the cursor to a pointer when the mouse is over the POI layer.
-            map.on('mouseenter', layerId, () => {
-                map.getCanvas().style.cursor = 'pointer';
-            });
-
-            // Change it back to a pointer when it leaves.
-            map.on('mouseleave', layerId, () => {
-                map.getCanvas().style.cursor = '';
-            });
+            map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
+            map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
         }
+    });
+}
+
+// --- NEW: Functions for Community Hubs / Meetups ---
+
+/**
+ * Opens the "Schedule a Meetup" modal and pre-fills the location name.
+ * @param {string} poiName The name of the Point of Interest.
+ */
+function openMeetupModal(poiName) {
+    if (!currentUser) {
+        alert("Please log in to schedule a meetup.");
+        return;
+    }
+    document.getElementById('meetupLocationName').textContent = poiName;
+    document.getElementById('poiNameInput').value = poiName; // Store it in a hidden input
+    document.getElementById('meetupModal').style.display = 'flex';
+    validateMeetupForm(); // Run once to set initial button state
+}
+
+/**
+ * Validates the meetup form to enable/disable the "Create" button.
+ */
+function validateMeetupForm() {
+    const title = document.getElementById('meetupTitleInput').value.trim();
+    const description = document.getElementById('meetupDescriptionInput').value.trim();
+    const safetyChecked = document.getElementById('safetyCheckbox').checked;
+    const createBtn = document.getElementById('createMeetupBtn');
+    const profanityWarning = document.getElementById('profanityWarning');
+    
+    // Basic profanity check
+    const hasProfanity = profanityList.some(word => title.toLowerCase().includes(word) || description.toLowerCase().includes(word));
+
+    if (hasProfanity) {
+        profanityWarning.style.display = 'block';
+    } else {
+        profanityWarning.style.display = 'none';
+    }
+
+    // Enable button only if all conditions are met
+    createBtn.disabled = !(title && description && safetyChecked && !hasProfanity);
+}
+
+/**
+ * Handles the submission of the "Schedule a Meetup" form.
+ */
+async function handleMeetupSubmit() {
+    if (!currentUser) return;
+
+    const title = document.getElementById('meetupTitleInput').value.trim();
+    const description = document.getElementById('meetupDescriptionInput').value.trim();
+    const poiName = document.getElementById('poiNameInput').value;
+
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", currentUser.uid);
+        const docSnap = await getDoc(publicProfileRef);
+        if (!docSnap.exists()) throw new Error("Could not find your public profile.");
+        
+        const username = docSnap.data().username;
+
+        // Save the new meetup to the 'meetups' collection
+        await addDoc(collection(db, "meetups"), {
+            organizerId: currentUser.uid,
+            organizerName: username,
+            poiName: poiName,
+            title: title,
+            description: description,
+            createdAt: new Date()
+        });
+
+        alert("Meetup scheduled successfully!");
+        document.getElementById('meetupModal').style.display = 'none';
+        document.getElementById('meetupTitleInput').value = '';
+        document.getElementById('meetupDescriptionInput').value = '';
+        document.getElementById('safetyCheckbox').checked = false;
+
+    } catch (error) {
+        console.error("Error scheduling meetup:", error);
+        alert("There was an error scheduling your meetup.");
+    }
+}
+
+/**
+ * Opens the "View Meetups" modal and fetches the list of meetups for that location.
+ * @param {string} poiName The name of the Point of Interest.
+ */
+function openViewMeetupsModal(poiName) {
+    document.getElementById('viewMeetupsLocationName').textContent = poiName;
+    const meetupsList = document.getElementById('meetupsList');
+    meetupsList.innerHTML = '<li>Loading meetups...</li>';
+    document.getElementById('viewMeetupsModal').style.display = 'flex';
+
+    // Set up a real-time listener for meetups at this POI
+    const q = query(collection(db, "meetups"), where("poiName", "==", poiName), orderBy("createdAt", "desc"));
+    
+    onSnapshot(q, (querySnapshot) => {
+        if (querySnapshot.empty) {
+            meetupsList.innerHTML = '<li>No meetups scheduled for this location yet. Be the first!</li>';
+            return;
+        }
+
+        meetupsList.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const meetup = doc.data();
+            const li = document.createElement('li');
+            const date = meetup.createdAt.toDate().toLocaleDateString();
+            li.innerHTML = `
+                <div>
+                    <span>${meetup.title}</span><br>
+                    <small class="session-date">Organized by: ${meetup.organizerName} on ${date}</small>
+                    <p style="margin-top: 5px; white-space: pre-wrap;">${meetup.description}</p>
+                </div>
+            `;
+            meetupsList.appendChild(li);
+        });
     });
 }
