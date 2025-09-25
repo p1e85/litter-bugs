@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAndClearOldData();
 
     // Core Modals & Buttons
-    const termsModal = document.getElementById('termsModal');
+const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
     const termsCheckbox = document.getElementById('termsCheckbox');
@@ -124,6 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const safetyModalCloseBtn = safetyModal.querySelector('.close-btn');
     const changeStyleBtn = document.getElementById('changeStyleBtn');
     const centerOnRouteBtn = document.getElementById('centerOnRouteBtn');
+    const summaryModal = document.getElementById('summaryModal');
+    const summaryOkBtn = document.getElementById('summaryOkBtn');
+    const summaryModalCloseBtn = summaryModal.querySelector('.close-btn');
     const leaderboardBtn = document.getElementById('leaderboardBtn');
     const leaderboardModal = document.getElementById('leaderboardModal');
     const leaderboardModalCloseBtn = leaderboardModal.querySelector('.close-btn');
@@ -139,9 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const meetupDescriptionInput = document.getElementById('meetupDescriptionInput');
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
-    const summaryModal = document.getElementById('summaryModal');
-    const summaryOkBtn = document.getElementById('summaryOkBtn');
-    const summaryModalCloseBtn = summaryModal.querySelector('.close-btn');
 
     onAuthStateChanged(auth, async (user) => {
         const userStatus = document.getElementById('userStatus');
