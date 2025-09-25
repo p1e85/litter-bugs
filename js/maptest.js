@@ -227,6 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
         zoom: 10
     });
 
+      // --- NEW: Initialize the Geocoder (Search Bar) ---
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: false, // Do not place a pin on the search result
+        placeholder: 'Search for a place'
+    });
+
+    map.addControl(geocoder, 'top-left');
+
     map.on('load', () => {
         initializeMapLayers();
         setupPoiClickListeners(); // <<< NEW: Activate the landmark click listeners
