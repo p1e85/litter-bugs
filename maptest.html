@@ -7,6 +7,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪲</text></svg>">
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+        <!-- NEW: Google reCAPTCHA Library -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link rel="stylesheet" href="css/maptest.css">
 </head>
 <body>
@@ -83,6 +85,10 @@
                     <input type="checkbox" id="ageCheckbox">
                     <label for="ageCheckbox">I certify that I am 18 years of age or older.</label>
                 </div>
+
+                <!-- NEW: reCAPTCHA Container -->
+                <div id="recaptcha-container" class="recaptcha-container"></div>
+                
                 <button id="authActionBtn" disabled>Sign Up</button>
             </div>
             <hr>
