@@ -641,3 +641,12 @@ body {
     border-radius: 10px !important;
     z-index: 20 !important; /* A high z-index ensures suggestions appear ON TOP of other UI elements. */
 }
+
+/* NEW: Style for the Share Button */
+.modal-button.share-button {
+    background-color: #28a745;
+    margin-bottom: 10px; /* Add some space below the share button */
+}
+.modal-button.share-button:hover {
+    background-color: #218838;
+}
