@@ -779,13 +779,85 @@ async function loadSession() {
     document.getElementById('sessionsModal').style.display = 'flex';
 }
 
-function populateLocalSessionList() { /* ... */ }
-function deleteLocalSession(index, sessionName) { /* ... */ }
-function loadSpecificLocalSession(sessionIndex) { /* ... */ }
+function populateLocalSessionList() {
+    const localSessionList = document.getElementById('localSessionList');
+    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+    localSessionList.innerHTML = '';
+    if (guestSessions.length === 0) { localSessionList.innerHTML = '<li>No locally saved sessions found.</li>'; return; }
+    guestSessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach((sessionData, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
+        li.querySelector('div').addEventListener('click', () => loadSpecificLocalSession(index));
+        li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deleteLocalSession(index, sessionData.sessionName); });
+        localSessionList.appendChild(li);
+    });
+}
 
-async function populateSessionList() { /* ... */ }
-async function deletePrivateSession(sessionId, sessionName) { /* ... */ }
-async function loadSpecificSession(sessionId) { /* ... */ }
+function deleteLocalSession(sessionIndex, sessionName) {
+    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
+        let guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+        guestSessions.splice(sessionIndex, 1);
+        localStorage.setItem('guestSessions', JSON.stringify(guestSessions));
+        alert("Session deleted.");
+        populateLocalSessionList();
+    }
+}
+
+function loadSpecificLocalSession(sessionIndex) {
+    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+    const sessionData = guestSessions[sessionIndex];
+    if (sessionData) {
+        clearCurrentSession();
+        const convertedData = { ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) };
+        displaySessionData(convertedData);
+        alert(`Session "${sessionData.sessionName}" loaded!`);
+        document.getElementById('localSessionsModal').style.display = 'none';
+        centerOnRouteBtn.disabled = false;
+    }
+}
+
+async function populateSessionList() {
+    const sessionList = document.getElementById('sessionList');
+    sessionList.innerHTML = '<li>Loading...</li>';
+    try {
+        const q = query(collection(db, "users", currentUser.uid, "privateSessions"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        sessionList.innerHTML = '';
+        if (querySnapshot.empty) { sessionList.innerHTML = '<li>No saved cloud sessions found.</li>'; return; }
+        querySnapshot.forEach(doc => {
+            const sessionData = doc.data();
+            const li = document.createElement('li');
+            li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp.seconds * 1000).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
+            li.querySelector('div').addEventListener('click', () => loadSpecificSession(doc.id));
+            li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deletePrivateSession(doc.id, sessionData.sessionName); });
+            sessionList.appendChild(li);
+        });
+    } catch (error) { console.error("Error fetching sessions:", error); sessionList.innerHTML = '<li>Could not load sessions.</li>'; }
+}
+
+async function deletePrivateSession(sessionId, sessionName) {
+    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
+        try {
+            await deleteDoc(doc(db, "users", currentUser.uid, "privateSessions", sessionId));
+            alert("Session deleted.");
+            populateSessionList();
+        } catch (error) { console.error("Error deleting session:", error); alert("Failed to delete session."); }
+    }
+}
+
+async function loadSpecificSession(sessionId) {
+    try {
+        const docSnap = await getDoc(doc(db, "users", currentUser.uid, "privateSessions", sessionId));
+        if (docSnap.exists()) {
+            clearCurrentSession();
+            const sessionData = docSnap.data();
+            displaySessionData({ ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) });
+            alert(`Session "${sessionData.sessionName}" loaded!`);
+            document.getElementById('sessionsModal').style.display = 'none';
+            centerOnRouteBtn.disabled = false;
+        }
+    } catch (error) { console.error("Error loading specific session:", error); alert("Failed to load session."); }
+}
 
 /**
  * Resets the current session state (clears route, pins, markers, etc.).
@@ -834,17 +906,107 @@ function exportGeoJSON() {
 /**
  * Populates the modal with a list of the user's own published routes for management.
  */
-async function populatePublishedRoutesList() { /* ... */ }
+async function populatePublishedRoutesList() {
+    const publishedRoutesList = document.getElementById('publishedRoutesList');
+    publishedRoutesList.innerHTML = '<li>Loading your publications...</li>';
+    try {
+        const q = query(collection(db, "publishedRoutes"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) { publishedRoutesList.innerHTML = '<li>You have not published any routes yet.</li>'; return; }
+        publishedRoutesList.innerHTML = '';
+        querySnapshot.forEach(doc => {
+            const routeData = doc.data();
+            const li = document.createElement('li');
+            li.innerHTML = `<div><span>Route published on</span><br><small class="session-date">${new Date(routeData.timestamp.seconds * 1000).toLocaleString()}</small></div><button class="delete-session-btn">Delete</button>`;
+            li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deletePublishedRoute(doc.id); });
+            publishedRoutesList.appendChild(li);
+        });
+    } catch (error) { console.error("Error fetching published routes:", error); publishedRoutesList.innerHTML = '<li>Could not load publications.</li>'; }
+}
 
 /**
  * Deletes one of the user's published routes from the community map.
  */
-async function deletePublishedRoute(routeId) { /* ... */ }
+async function deletePublishedRoute(routeId) {
+    if (confirm("Are you sure you want to permanently delete this published route?")) {
+        try {
+            await deleteDoc(doc(db, "publishedRoutes", routeId));
+            alert("Route deleted from the community map.");
+            populatePublishedRoutesList();
+            if (isCommunityViewOn) {
+                clearCommunityRoutes();
+                fetchAndDisplayCommunityRoutes();
+            }
+        } catch (error) { console.error("Error deleting published route:", error); alert("Failed to delete route."); }
+    }
+}
 
 // --- Profile Management Functions ---
-async function loadProfileForEditing() { /* ... */ }
-async function saveProfile() { /* ... */ }
-async function showPublicProfile(userId) { /* ... */ }
+async function loadProfileForEditing() {
+    if (!currentUser) return;
+    try {
+        const docSnap = await getDoc(doc(db, "publicProfiles", currentUser.uid));
+        if (docSnap.exists()) {
+            const profileData = docSnap.data();
+            document.getElementById('bioInput').value = profileData.bio || '';
+            document.getElementById('locationInput').value = profileData.location || '';
+            document.getElementById('coffeeLinkInput').value = profileData.buyMeACoffeeLink || '';
+        }
+    } catch (error) { console.error("Error loading profile:", error); alert("Could not load your profile for editing."); }
+}
+
+async function saveProfile() {
+    if (!currentUser) return;
+    const bio = document.getElementById('bioInput').value, location = document.getElementById('locationInput').value, coffeeLink = document.getElementById('coffeeLinkInput').value;
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", currentUser.uid);
+        await updateDoc(publicProfileRef, { bio, location, buyMeACoffeeLink: coffeeLink });
+        alert("Profile updated successfully!");
+        document.getElementById('profileModal').style.display = 'none';
+    } catch (error) { console.error("Error saving profile:", error); alert("Error saving profile."); }
+}
+
+async function showPublicProfile(userId) {
+    if (!userId) return;
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", userId);
+        const docSnap = await getDoc(publicProfileRef);
+
+        if (docSnap.exists()) {
+            const profileData = docSnap.data();
+            const publicProfileModal = document.getElementById('publicProfileModal');
+            const profileSupportBtn = document.getElementById('profileSupportBtn');
+            const profileAchievementsContainer = document.getElementById('profileAchievements');
+            
+            document.getElementById('profileUsername').textContent = profileData.username || 'Anonymous User';
+            document.getElementById('profileLocation').textContent = profileData.location || '';
+            document.getElementById('profileBio').textContent = profileData.bio || 'This user has not written a bio yet.';
+            
+            profileAchievementsContainer.innerHTML = '';
+            // CRITICAL FIX: Get badges from the public profile, NOT the private user doc.
+            const userBadges = profileData.badges || {};
+            let earnedBadgesCount = 0;
+            for (const badgeKey in allBadges) {
+                if (userBadges[badgeKey] === true) {
+                    earnedBadgesCount++;
+                    const badgeInfo = allBadges[badgeKey];
+                    const badgeElement = document.createElement('div');
+                    badgeElement.className = 'badge-item';
+                    badgeElement.textContent = badgeInfo.icon;
+                    badgeElement.title = `${badgeInfo.name}: ${badgeInfo.description}`;
+                    profileAchievementsContainer.appendChild(badgeElement);
+                }
+            }
+            if (earnedBadgesCount === 0) profileAchievementsContainer.innerHTML = '<p class="no-badges-message">This user hasn\'t earned any badges yet.</p>';
+
+            if (profileData.buyMeACoffeeLink) {
+                profileSupportBtn.style.display = 'block';
+                profileSupportBtn.onclick = () => window.open(profileData.buyMeACoffeeLink, '_blank');
+            } else { profileSupportBtn.style.display = 'none'; }
+            publicProfileModal.style.display = 'flex';
+        } else { alert("Could not find this user's profile."); }
+    } catch (error) { console.error("Error fetching public profile:", error); alert("Error loading profile."); }
+}
 async function handleAccountDeletion() { /* ... */ }
 
 // --- Gamification & QOL Functions ---
