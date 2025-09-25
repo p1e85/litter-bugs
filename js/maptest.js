@@ -219,6 +219,19 @@ document.addEventListener('DOMContentLoaded', () => {
         zoom: 10
     });
 
+        // --- NEW: Initialize the Geocoder (Search Bar) ---
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        marker: false, // Do not place a pin on the search result
+        placeholder: 'Search for a place'
+    });
+
+    // Add the geocoder to the map in the top left corner.
+    // NOTE: This control will automatically appear below the top-bar-container
+    // because of the order they are added and their CSS positioning.
+    map.addControl(geocoder, 'top-left');
+
     map.on('load', () => {
         initializeMapLayers();
         setupPoiClickListeners();
@@ -227,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     map.on('zoom', () => {
         toggleMarkerVisibility();
     });
-
+    
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
