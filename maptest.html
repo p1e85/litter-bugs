@@ -6,31 +6,26 @@
     <title>Litter Bugs - Map Tracker</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪲</text></svg>">
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
-        <!-- NEW: Mapbox Geocoder Plugin Files -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
-    
     <link rel="stylesheet" href="css/maptest.css">
 </head>
 <body>
 
-    <!-- Top Bar Container -->
+    <!-- Top Bar Container (RESTRUCTURED) -->
     <div class="top-bar-container">
-        <div class="top-row">
-            <div class="top-bar-left">
-                <button id="infoBtn" class="top-bar-button">ℹ️ Info</button>
-                <button id="changeStyleBtn" class="top-bar-button">🎨 Change Style</button>
-                <button id="centerOnRouteBtn" class="top-bar-button" disabled>🎯 Find Route</button>
-            </div>
-            <div class="top-bar-right">
-                <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="donate-button">
-                    ☕ Support
-                </a>
-            </div>
+        <!-- This group will be on the left on desktop -->
+        <div class="top-bar-left">
+            <button id="leaderboardBtn" class="top-bar-button">🏆 Leaderboard</button>
+            <button id="communityBtn" class="community-button off">🌎 Community View: OFF</button>
         </div>
-        <div class="bottom-row">
-             <button id="leaderboardBtn" class="top-bar-button">🏆 Leaderboard</button>
-             <button id="communityBtn" class="community-button off">🌎 Community View: OFF</button>
+        <!-- This group will be on the right on desktop -->
+        <div class="top-bar-right">
+            <button id="infoBtn" class="top-bar-button">ℹ️ Info</button>
+            <button id="changeStyleBtn" class="top-bar-button">🎨 Change Style</button>
+            <button id="centerOnRouteBtn" class="top-bar-button" disabled>🎯 Find Route</button>
+            <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="donate-button">
+                ☕ Support
+            </a>
         </div>
     </div>
 
@@ -180,16 +175,22 @@
                 <button class="leaderboard-tab" data-metric="totalDistance">Most Distance Cleaned</button>
             </div>
             <ol id="leaderboardList" class="leaderboard-list"></ol>
-
-            <!-- NEW Container for Personal Stats -->
-            <div id="myStatsContainer" class="my-stats-container" style="display: none;">
-                <!-- Content will be populated by JavaScript -->
-            </div>
-            
+            <div id="myStatsContainer" class="my-stats-container" style="display: none;"></div>
         </div>
     </div>
 
-    <!-- NEW: Schedule a Meetup Modal -->
+    <!-- Achievement Unlocked Modal -->
+    <div id="achievementModal" class="modal">
+        <div class="modal-content achievement-modal">
+            <span class="achievement-icon"></span>
+            <h2>Achievement Unlocked!</h2>
+            <h3 id="achievementName"></h3>
+            <p id="achievementDescription"></p>
+            <button id="achievementOkBtn" class="modal-button">Awesome!</button>
+        </div>
+    </div>
+
+    <!-- Schedule a Meetup Modal -->
     <div id="meetupModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -215,17 +216,15 @@
         </div>
     </div>
 
-    <!-- NEW: View Scheduled Meetups Modal -->
+    <!-- View Scheduled Meetups Modal -->
     <div id="viewMeetupsModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Scheduled Meetups at <strong id="viewMeetupsLocationName"></strong></h2>
-            <ul id="meetupsList" class="session-list">
-                <!-- Meetups will be populated here by JavaScript -->
-            </ul>
+            <ul id="meetupsList" class="session-list"></ul>
         </div>
     </div>
-    
+
     <!-- Map container -->
     <div id='map'></div>
 
@@ -305,6 +304,7 @@
     <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <script src="js/maptest.js" type="module"></script>
 
 </body>
