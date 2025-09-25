@@ -604,3 +604,35 @@ body {
     background-position: center; 
     cursor: pointer;
 }
+
+/* NEW: Styles for the Meetup Modals */
+.poi-popup-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.poi-popup-buttons button {
+    flex-grow: 1;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+.poi-popup-buttons .schedule-btn {
+    background-color: #007bff;
+}
+.poi-popup-buttons .view-btn {
+    background-color: #28a745;
+}
+
+.safety-disclaimer {
+    font-size: 0.85em;
+    color: #6c757d;
+    background-color: #fffbe6;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid #ffc107;
+    margin: 10px 0;
+}
