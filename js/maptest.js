@@ -45,7 +45,7 @@ let userMarkers = [];
 let communityMarkers = [];
 const ZOOM_THRESHOLD = 14;
 let trackingStartTime = null;
-const profanityList = ["word1", "word2", "word3"];
+const profanityList = ["word1", "word2", "word3"]; // Add profanity here
 
 const mapStyles = [
     { name: 'Streets', url: 'mapbox://styles/mapbox/streets-v12' },
@@ -77,8 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     checkAndClearOldData();
 
-    // Core Modals & Buttons
-const termsModal = document.getElementById('termsModal');
+    // --- Element References ---
+    const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
     const termsCheckbox = document.getElementById('termsCheckbox');
@@ -143,6 +143,7 @@ const termsModal = document.getElementById('termsModal');
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
 
+    // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
         const userStatus = document.getElementById('userStatus');
         const loggedInContent = document.getElementById('loggedInContent');
@@ -157,10 +158,14 @@ const termsModal = document.getElementById('termsModal');
         if (user) {
             currentUser = user;
             try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists() && userDocSnap.data().totalPins === undefined) {
+                    await updateDoc(userDocRef, { totalPins: 0, totalDistance: 0, totalRoutes: 0 });
+                }
                 const publicProfileRef = doc(db, "publicProfiles", user.uid);
                 const publicProfileSnap = await getDoc(publicProfileRef);
                 let username;
-
                 if (publicProfileSnap.exists()) {
                     username = publicProfileSnap.data().username;
                 } else {
@@ -175,16 +180,9 @@ const termsModal = document.getElementById('termsModal');
                     });
                     username = defaultUsername;
                 }
-
                 if (userEmailSpan) {
                     userEmailSpan.textContent = `Logged in as: ${username}`;
                 }
-                const userDocRef = doc(db, "users", user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                if (userDocSnap.exists() && userDocSnap.data().totalPins === undefined) {
-                    await updateDoc(userDocRef, { totalPins: 0, totalDistance: 0, totalRoutes: 0 });
-                }
-
             } catch (error) {
                 console.error("Error fetching or updating user profile:", error);
             }
@@ -204,6 +202,7 @@ const termsModal = document.getElementById('termsModal');
         }
     });
 
+    // --- Initial UI Setup ---
     if (sessionStorage.getItem('termsAccepted')) {
         termsModal.style.display = 'none';
         document.getElementById('userStatus').style.display = 'flex';
@@ -211,6 +210,7 @@ const termsModal = document.getElementById('termsModal');
         termsModal.style.display = 'flex';
     }
 
+    // --- Mapbox Setup ---
     mapboxgl.accessToken = 'pk.eyJ1IjoicDFjcmVhdGlvbnMiLCJhIjoiY2p6ajZvejJmMDZhaTNkcWpiN294dm12eCJ9.8ckNT6kfuJry7K7GAeIuxw';
     map = new mapboxgl.Map({
         container: 'map',
@@ -219,19 +219,15 @@ const termsModal = document.getElementById('termsModal');
         zoom: 10
     });
 
-        // --- NEW: Initialize the Geocoder (Search Bar) ---
     const geocoder = new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl,
-        marker: false, // Do not place a pin on the search result
+        marker: false,
         placeholder: 'Search for a place'
     });
-
-    // Add the geocoder to the map in the top left corner.
-    // NOTE: This control will automatically appear below the top-bar-container
-    // because of the order they are added and their CSS positioning.
     map.addControl(geocoder, 'top-left');
 
+    // --- Map Event Listeners ---
     map.on('load', () => {
         initializeMapLayers();
         setupPoiClickListeners();
@@ -240,7 +236,8 @@ const termsModal = document.getElementById('termsModal');
     map.on('zoom', () => {
         toggleMarkerVisibility();
     });
-    
+
+    // --- General Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
@@ -298,10 +295,8 @@ const termsModal = document.getElementById('termsModal');
         safetyModal.style.display = 'none';
         startTracking();
     });
-    
     summaryModalCloseBtn.addEventListener('click', () => summaryModal.style.display = 'none');
     summaryOkBtn.addEventListener('click', () => summaryModal.style.display = 'none');
-    
     leaderboardBtn.addEventListener('click', () => {
         leaderboardModal.style.display = 'flex';
         document.getElementById('leaderboardList').style.display = 'block';
@@ -328,14 +323,6 @@ const termsModal = document.getElementById('termsModal');
         });
     });
     
-    achievementOkBtn.addEventListener('click', () => achievementModal.style.display = 'none');
-    meetupModalCloseBtn.addEventListener('click', () => meetupModal.style.display = 'none');
-    viewMeetupsModalCloseBtn.addEventListener('click', () => viewMeetupsModal.style.display = 'none');
-    safetyCheckbox.addEventListener('change', validateMeetupForm);
-    meetupTitleInput.addEventListener('input', validateMeetupForm);
-    meetupDescriptionInput.addEventListener('input', validateMeetupForm);
-    createMeetupBtn.addEventListener('click', handleMeetupSubmit);
-
     window.addEventListener('click', (event) => {
         const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal, meetupModal, viewMeetupsModal];
         if (modals.includes(event.target)) {
@@ -343,6 +330,13 @@ const termsModal = document.getElementById('termsModal');
         }
     });
     
+    achievementOkBtn.addEventListener('click', () => achievementModal.style.display = 'none');
+    meetupModalCloseBtn.addEventListener('click', () => meetupModal.style.display = 'none');
+    viewMeetupsModalCloseBtn.addEventListener('click', () => viewMeetupsModal.style.display = 'none');
+    safetyCheckbox.addEventListener('change', validateMeetupForm);
+    meetupTitleInput.addEventListener('input', validateMeetupForm);
+    meetupDescriptionInput.addEventListener('input', validateMeetupForm);
+    createMeetupBtn.addEventListener('click', handleMeetupSubmit);
     saveBtn.addEventListener('click', saveSession);
     loadBtn.addEventListener('click', () => {
         dataModal.style.display = 'none';
@@ -370,7 +364,6 @@ const termsModal = document.getElementById('termsModal');
 });
 
 // --- Functions ---
-// (All functions are complete and commented below)
 
 /**
  * Initializes the base layers and data sources for the Mapbox map.
@@ -414,7 +407,6 @@ function toggleMarkerVisibility() {
 }
 
 // --- Data Conversion Helpers ---
-// These functions convert coordinate data between the app's format ([lng, lat]) and Firestore's format ({lng, lat}).
 function convertRouteForFirestore(coordsArray) { if (!coordsArray) return []; return coordsArray.map(coord => ({ lng: coord[0], lat: coord[1] })); }
 function convertRouteFromFirestore(coordsData) { if (!coordsData || coordsData.length === 0) return []; if (Array.isArray(coordsData[0])) { return coordsData; } return coordsData.map(coord => [coord.lng, coord.lat]); }
 function convertPinsForFirestore(pinsArray) { if (!pinsArray) return []; return pinsArray.map(pin => { const newPin = { ...pin }; if (Array.isArray(newPin.coords)) { newPin.coords = { lng: newPin.coords[0], lat: newPin.coords[1] }; } return newPin; }); }
@@ -807,13 +799,103 @@ async function loadSession() {
     document.getElementById('sessionsModal').style.display = 'flex';
 }
 
-function populateLocalSessionList() { /* ... */ }
-function deleteLocalSession(index, sessionName) { /* ... */ }
-function loadSpecificLocalSession(sessionIndex) { /* ... */ }
+/**
+ * Populates the modal with a list of locally saved sessions.
+ */
+function populateLocalSessionList() {
+    const localSessionList = document.getElementById('localSessionList');
+    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+    localSessionList.innerHTML = '';
+    if (guestSessions.length === 0) { localSessionList.innerHTML = '<li>No locally saved sessions found.</li>'; return; }
+    guestSessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach((sessionData, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
+        li.querySelector('div').addEventListener('click', () => loadSpecificLocalSession(index));
+        li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deleteLocalSession(index, sessionData.sessionName); });
+        localSessionList.appendChild(li);
+    });
+}
 
-async function populateSessionList() { /* ... */ }
-async function deletePrivateSession(sessionId, sessionName) { /* ... */ }
-async function loadSpecificSession(sessionId) { /* ... */ }
+/**
+ * Deletes a session from local storage.
+ */
+function deleteLocalSession(sessionIndex, sessionName) {
+    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
+        let guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+        guestSessions.splice(sessionIndex, 1);
+        localStorage.setItem('guestSessions', JSON.stringify(guestSessions));
+        alert("Session deleted.");
+        populateLocalSessionList();
+    }
+}
+
+/**
+ * Loads a specific session from local storage and displays it on the map.
+ */
+function loadSpecificLocalSession(sessionIndex) {
+    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+    const sessionData = guestSessions[sessionIndex];
+    if (sessionData) {
+        clearCurrentSession();
+        const convertedData = { ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) };
+        displaySessionData(convertedData);
+        alert(`Session "${sessionData.sessionName}" loaded!`);
+        document.getElementById('localSessionsModal').style.display = 'none';
+        document.getElementById('centerOnRouteBtn').disabled = false;
+    }
+}
+
+/**
+ * Populates the modal with a list of cloud-saved sessions from Firestore.
+ */
+async function populateSessionList() {
+    const sessionList = document.getElementById('sessionList');
+    sessionList.innerHTML = '<li>Loading...</li>';
+    try {
+        const q = query(collection(db, "users", currentUser.uid, "privateSessions"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        sessionList.innerHTML = '';
+        if (querySnapshot.empty) { sessionList.innerHTML = '<li>No saved cloud sessions found.</li>'; return; }
+        querySnapshot.forEach(doc => {
+            const sessionData = doc.data();
+            const li = document.createElement('li');
+            li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp.seconds * 1000).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
+            li.querySelector('div').addEventListener('click', () => loadSpecificSession(doc.id));
+            li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deletePrivateSession(doc.id, sessionData.sessionName); });
+            sessionList.appendChild(li);
+        });
+    } catch (error) { console.error("Error fetching sessions:", error); sessionList.innerHTML = '<li>Could not load sessions.</li>'; }
+}
+
+/**
+ * Deletes a session from Firestore.
+ */
+async function deletePrivateSession(sessionId, sessionName) {
+    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
+        try {
+            await deleteDoc(doc(db, "users", currentUser.uid, "privateSessions", sessionId));
+            alert("Session deleted.");
+            populateSessionList();
+        } catch (error) { console.error("Error deleting session:", error); alert("Failed to delete session."); }
+    }
+}
+
+/**
+ * Loads a specific session from Firestore and displays it on the map.
+ */
+async function loadSpecificSession(sessionId) {
+    try {
+        const docSnap = await getDoc(doc(db, "users", currentUser.uid, "privateSessions", sessionId));
+        if (docSnap.exists()) {
+            clearCurrentSession();
+            const sessionData = docSnap.data();
+            displaySessionData({ ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) });
+            alert(`Session "${sessionData.sessionName}" loaded!`);
+            document.getElementById('sessionsModal').style.display = 'none';
+            document.getElementById('centerOnRouteBtn').disabled = false;
+        }
+    } catch (error) { console.error("Error loading specific session:", error); alert("Failed to load session."); }
+}
 
 /**
  * Resets the current session state (clears route, pins, markers, etc.).
@@ -862,18 +944,147 @@ function exportGeoJSON() {
 /**
  * Populates the modal with a list of the user's own published routes for management.
  */
-async function populatePublishedRoutesList() { /* ... */ }
+async function populatePublishedRoutesList() {
+    const publishedRoutesList = document.getElementById('publishedRoutesList');
+    publishedRoutesList.innerHTML = '<li>Loading your publications...</li>';
+    try {
+        const q = query(collection(db, "publishedRoutes"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) { publishedRoutesList.innerHTML = '<li>You have not published any routes yet.</li>'; return; }
+        publishedRoutesList.innerHTML = '';
+        querySnapshot.forEach(doc => {
+            const routeData = doc.data();
+            const li = document.createElement('li');
+            li.innerHTML = `<div><span>Route published on</span><br><small class="session-date">${new Date(routeData.timestamp.seconds * 1000).toLocaleString()}</small></div><button class="delete-session-btn">Delete</button>`;
+            li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deletePublishedRoute(doc.id); });
+            publishedRoutesList.appendChild(li);
+        });
+    } catch (error) { console.error("Error fetching published routes:", error); publishedRoutesList.innerHTML = '<li>Could not load publications.</li>'; }
+}
 
 /**
  * Deletes one of the user's published routes from the community map.
  */
-async function deletePublishedRoute(routeId) { /* ... */ }
+async function deletePublishedRoute(routeId) {
+    if (confirm("Are you sure you want to permanently delete this published route?")) {
+        try {
+            await deleteDoc(doc(db, "publishedRoutes", routeId));
+            alert("Route deleted from the community map.");
+            populatePublishedRoutesList();
+            if (isCommunityViewOn) {
+                clearCommunityRoutes();
+                fetchAndDisplayCommunityRoutes();
+            }
+        } catch (error) { console.error("Error deleting published route:", error); alert("Failed to delete route."); }
+    }
+}
 
 // --- Profile Management Functions ---
-async function loadProfileForEditing() { /* ... */ }
-async function saveProfile() { /* ... */ }
-async function showPublicProfile(userId) { /* ... */ }
-async function handleAccountDeletion() { /* ... */ }
+/**
+ * Loads the user's public profile data into the "Edit Profile" modal.
+ */
+async function loadProfileForEditing() {
+    if (!currentUser) return;
+    try {
+        const docSnap = await getDoc(doc(db, "publicProfiles", currentUser.uid));
+        if (docSnap.exists()) {
+            const profileData = docSnap.data();
+            document.getElementById('bioInput').value = profileData.bio || '';
+            document.getElementById('locationInput').value = profileData.location || '';
+            document.getElementById('coffeeLinkInput').value = profileData.buyMeACoffeeLink || '';
+        }
+    } catch (error) { console.error("Error loading profile:", error); alert("Could not load your profile for editing."); }
+}
+
+/**
+ * Saves the updated profile information to the user's public profile in Firestore.
+ */
+async function saveProfile() {
+    if (!currentUser) return;
+    const bio = document.getElementById('bioInput').value, location = document.getElementById('locationInput').value, coffeeLink = document.getElementById('coffeeLinkInput').value;
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", currentUser.uid);
+        await updateDoc(publicProfileRef, { bio, location, buyMeACoffeeLink: coffeeLink });
+        alert("Profile updated successfully!");
+        document.getElementById('profileModal').style.display = 'none';
+    } catch (error) { console.error("Error saving profile:", error); alert("Error saving profile."); }
+}
+
+/**
+ * Fetches and displays another user's public profile in a modal.
+ */
+async function showPublicProfile(userId) {
+    if (!userId) return;
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", userId);
+        const docSnap = await getDoc(publicProfileRef);
+
+        if (docSnap.exists()) {
+            const profileData = docSnap.data();
+            const publicProfileModal = document.getElementById('publicProfileModal');
+            const profileSupportBtn = document.getElementById('profileSupportBtn');
+            const profileAchievementsContainer = document.getElementById('profileAchievements');
+            document.getElementById('profileUsername').textContent = profileData.username || 'Anonymous User';
+            document.getElementById('profileLocation').textContent = profileData.location || '';
+            document.getElementById('profileBio').textContent = profileData.bio || 'This user has not written a bio yet.';
+            
+            if (profileAchievementsContainer) {
+                profileAchievementsContainer.innerHTML = '';
+                const userBadges = profileData.badges || {};
+                let earnedBadgesCount = 0;
+                for (const badgeKey in allBadges) {
+                    if (userBadges[badgeKey] === true) {
+                        earnedBadgesCount++;
+                        const badgeInfo = allBadges[badgeKey];
+                        const badgeElement = document.createElement('div');
+                        badgeElement.className = 'badge-item';
+                        badgeElement.textContent = badgeInfo.icon;
+                        badgeElement.title = `${badgeInfo.name}: ${badgeInfo.description}`;
+                        profileAchievementsContainer.appendChild(badgeElement);
+                    }
+                }
+                if (earnedBadgesCount === 0) profileAchievementsContainer.innerHTML = '<p class="no-badges-message">This user hasn\'t earned any badges yet.</p>';
+            }
+
+            if (profileData.buyMeACoffeeLink) {
+                profileSupportBtn.style.display = 'block';
+                profileSupportBtn.onclick = () => window.open(profileData.buyMeACoffeeLink, '_blank');
+            } else { profileSupportBtn.style.display = 'none'; }
+            publicProfileModal.style.display = 'flex';
+        } else { alert("Could not find this user's profile."); }
+    } catch (error) { console.error("Error fetching public profile:", error); alert("Error loading profile."); }
+}
+
+/**
+ * Handles the permanent deletion of a user's account and all their data.
+ */
+async function handleAccountDeletion() {
+    if (!currentUser) return;
+    if (!confirm("DANGER: Are you absolutely sure you want to permanently delete your account? This action cannot be undone.")) return;
+    if (!confirm("All of your private saved sessions and public routes will be deleted forever. Are you still sure?")) return;
+    try {
+        console.log("Starting account deletion for user:", currentUser.uid);
+        const privateSessionsQuery = query(collection(db, "users", currentUser.uid, "privateSessions"));
+        const privateSessionsSnapshot = await getDocs(privateSessionsQuery);
+        await Promise.all(privateSessionsSnapshot.docs.map(d => deleteDoc(d.ref)));
+        console.log("Private sessions deleted.");
+        const publishedRoutesQuery = query(collection(db, "publishedRoutes"), where("userId", "==", currentUser.uid));
+        const publishedRoutesSnapshot = await getDocs(publishedRoutesQuery);
+        await Promise.all(publishedRoutesSnapshot.docs.map(d => deleteDoc(d.ref)));
+        console.log("Published routes deleted.");
+        await deleteDoc(doc(db, "users", currentUser.uid));
+        await deleteDoc(doc(db, "publicProfiles", currentUser.uid));
+        console.log("User documents deleted.");
+        await deleteUser(currentUser);
+        alert("Your account and all associated data have been permanently deleted.");
+        document.getElementById('profileModal').style.display = 'none';
+    } catch (error) {
+        console.error("Error deleting account:", error);
+        if (error.code === 'auth/requires-recent-login') {
+            alert("This is a sensitive operation. Please log out and log back in to delete your account.");
+        } else { alert("An error occurred while deleting your account."); }
+    }
+}
 
 // --- Gamification & QOL Functions ---
 /**
@@ -905,12 +1116,16 @@ function showCleanupSummary() {
     const durationMs = new Date() - trackingStartTime;
     const distanceMeters = calculateRouteDistance(routeCoordinates);
     const pinsCount = photoPins.length;
+
     const distanceMiles = (distanceMeters * 0.000621371).toFixed(2);
+
     const minutes = Math.floor(durationMs / 60000);
     const seconds = ((durationMs % 60000) / 1000).toFixed(0);
+    
     document.getElementById('summaryDistance').textContent = `${distanceMiles} mi`;
     document.getElementById('summaryPins').textContent = pinsCount;
     document.getElementById('summaryDuration').textContent = `${minutes}m ${seconds}s`;
+    
     document.getElementById('summaryModal').style.display = 'flex';
     trackingStartTime = null;
 }
@@ -1081,12 +1296,32 @@ function setupPoiClickListeners() {
             map.on('click', layerId, (e) => {
                 if (e.features.length > 0) {
                     const feature = e.features[0];
-                    const coordinates = feature.geometry.coordinates.slice();
+                    const coordinates = e.lngLat;
                     const name = feature.properties.name;
-                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                    }
-                    new mapboxgl.Popup().setLngLat(coordinates).setHTML(`<strong>${name}</strong>`).addTo(map);
+
+                    const popupHTML = `
+                        <div>
+                            <strong>${name}</strong>
+                            <div class="poi-popup-buttons">
+                                <button class="schedule-btn">Schedule Meetup</button>
+                                <button class="view-btn">View Meetups</button>
+                            </div>
+                        </div>
+                    `;
+
+                    const popup = new mapboxgl.Popup()
+                        .setLngLat(coordinates)
+                        .setHTML(popupHTML)
+                        .addTo(map);
+                    
+                    popup.getElement().querySelector('.schedule-btn').addEventListener('click', () => {
+                        openMeetupModal(name);
+                        popup.remove();
+                    });
+                    popup.getElement().querySelector('.view-btn').addEventListener('click', () => {
+                        openViewMeetupsModal(name);
+                        popup.remove();
+                    });
                 }
             });
             map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -1094,4 +1329,109 @@ function setupPoiClickListeners() {
         }
     });
 }
+/**
+ * Opens the "Schedule a Meetup" modal and pre-fills the location name.
+ */
+function openMeetupModal(poiName) {
+    if (!currentUser) {
+        alert("Please log in to schedule a meetup.");
+        return;
+    }
+    document.getElementById('meetupLocationName').textContent = poiName;
+    document.getElementById('poiNameInput').value = poiName;
+    document.getElementById('meetupModal').style.display = 'flex';
+    validateMeetupForm();
+}
 
+/**
+ * Validates the meetup form to enable/disable the "Create" button.
+ */
+function validateMeetupForm() {
+    const title = document.getElementById('meetupTitleInput').value.trim();
+    const description = document.getElementById('meetupDescriptionInput').value.trim();
+    const safetyChecked = document.getElementById('safetyCheckbox').checked;
+    const createBtn = document.getElementById('createMeetupBtn');
+    const profanityWarning = document.getElementById('profanityWarning');
+    
+    const hasProfanity = profanityList.some(word => title.toLowerCase().includes(word) || description.toLowerCase().includes(word));
+
+    if (hasProfanity) {
+        profanityWarning.style.display = 'block';
+    } else {
+        profanityWarning.style.display = 'none';
+    }
+
+    createBtn.disabled = !(title && description && safetyChecked && !hasProfanity);
+}
+
+/**
+ * Handles the submission of the "Schedule a Meetup" form.
+ */
+async function handleMeetupSubmit() {
+    if (!currentUser) return;
+
+    const title = document.getElementById('meetupTitleInput').value.trim();
+    const description = document.getElementById('meetupDescriptionInput').value.trim();
+    const poiName = document.getElementById('poiNameInput').value;
+
+    try {
+        const publicProfileRef = doc(db, "publicProfiles", currentUser.uid);
+        const docSnap = await getDoc(publicProfileRef);
+        if (!docSnap.exists()) throw new Error("Could not find your public profile.");
+        
+        const username = docSnap.data().username;
+
+        await addDoc(collection(db, "meetups"), {
+            organizerId: currentUser.uid,
+            organizerName: username,
+            poiName: poiName,
+            title: title,
+            description: description,
+            createdAt: new Date()
+        });
+
+        alert("Meetup scheduled successfully!");
+        document.getElementById('meetupModal').style.display = 'none';
+        document.getElementById('meetupTitleInput').value = '';
+        document.getElementById('meetupDescriptionInput').value = '';
+        document.getElementById('safetyCheckbox').checked = false;
+
+    } catch (error) {
+        console.error("Error scheduling meetup:", error);
+        alert("There was an error scheduling your meetup.");
+    }
+}
+
+/**
+ * Opens the "View Meetups" modal and fetches the list of meetups for that location.
+ */
+function openViewMeetupsModal(poiName) {
+    document.getElementById('viewMeetupsLocationName').textContent = poiName;
+    const meetupsList = document.getElementById('meetupsList');
+    meetupsList.innerHTML = '<li>Loading meetups...</li>';
+    document.getElementById('viewMeetupsModal').style.display = 'flex';
+
+    const q = query(collection(db, "meetups"), where("poiName", "==", poiName), orderBy("createdAt", "desc"));
+    
+    onSnapshot(q, (querySnapshot) => {
+        if (querySnapshot.empty) {
+            meetupsList.innerHTML = '<li>No meetups scheduled for this location yet. Be the first!</li>';
+            return;
+        }
+
+        meetupsList.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const meetup = doc.data();
+            const li = document.createElement('li');
+            const date = meetup.createdAt.toDate().toLocaleDateString();
+            li.innerHTML = `
+                <div>
+                    <span>${meetup.title}</span><br>
+                    <small class="session-date">Organized by: ${meetup.organizerName} on ${date}</small>
+                    <p style="margin-top: 5px; white-space: pre-wrap;">${meetup.description}</p>
+                </div>
+            `;
+            meetupsList.appendChild(li);
+        });
+    });
+}
