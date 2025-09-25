@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authModal.style.display = 'flex';
         // Render reCAPTCHA if it's in sign up mode and not already rendered
         if (isSignUpMode && !document.getElementById('recaptcha-container').hasChildNodes()) {
-            const siteKey = "6Lc2crOrAAAAAMm3gDnMbsqYsRJBk-CYDvzaNF2b"; // <<< IMPORTANT: PASTE YOUR KEY
+            const siteKey = "6Lc3SdUrAAAAAGdx9LU-MTetz8b1DBOrwzdTJ7VL"; // <<< IMPORTANT: PASTE YOUR KEY
             grecaptcha.render('recaptcha-container', {
                 'sitekey': siteKey
             });
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAuthModalUI();
         // Also handle reCAPTCHA rendering on switch
         if (isSignUpMode && !document.getElementById('recaptcha-container').hasChildNodes()) {
-            const siteKey = "6Lc2crOrAAAAAMm3gDnMbsqYsRJBk-CYDvzaNF2b"; // <<< IMPORTANT: PASTE YOUR KEY
+            const siteKey = "6Lc3SdUrAAAAAGdx9LU-MTetz8b1DBOrwzdTJ7VL"; // <<< IMPORTANT: PASTE YOUR KEY
             grecaptcha.render('recaptcha-container', {
                 'sitekey': siteKey
             });
