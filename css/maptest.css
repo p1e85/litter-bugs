@@ -47,19 +47,23 @@ body {
     width: 100%;
 }
 
+/* Media Query for larger screens (tablets and desktops). */
 @media (min-width: 640px) {
+    /* Switches the top bar to a single horizontal row on wider screens. */
     .top-bar-container {
         flex-direction: row;
         align-items: center;
+        justify-content: space-between; /* Pushes the left and right groups apart. */
     }
     .top-row {
         width: auto;
+        order: 2; /* Moves the main controls to the right side. */
     }
     .bottom-row {
         width: auto;
+        order: 1; /* Moves the view controls to the left side. */
     }
 }
-
 
 .bottom-container {
     position: absolute;
