@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const safetyCheckbox = document.getElementById('safetyCheckbox');
     const meetupTitleInput = document.getElementById('meetupTitleInput');
     const meetupDescriptionInput = document.getElementById('meetupDescriptionInput');
+    const achievementModal = document.getElementById('achievementModal');
+    const achievementOkBtn = document.getElementById('achievementOkBtn');
     
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
@@ -244,6 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     map.on('zoom', () => {
         toggleMarkerVisibility();
+    });
+
+    achievementOkBtn.addEventListener('click', () => achievementModal.style.display = 'none');
+
+    window.addEventListener('click', (event) => {
+        const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal];
+        if (modals.includes(event.target)) {
+            modals.forEach(m => m.style.display = 'none');
+        }
     });
 
     const validateSignUpForm = () => {
