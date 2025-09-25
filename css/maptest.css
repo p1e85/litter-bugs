@@ -636,3 +636,21 @@ body {
     border-left: 4px solid #ffc107;
     margin: 10px 0;
 }
+
+/* NEW: Styles for the Mapbox Geocoder (Search Bar) */
+.mapboxgl-ctrl-geocoder {
+    margin: 10px;
+    border-radius: 20px !important; /* Force rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+.mapboxgl-ctrl-geocoder--input {
+    font-family: inherit !important;
+}
+.mapboxgl-ctrl-geocoder .suggestions {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 10px !important;
+}
