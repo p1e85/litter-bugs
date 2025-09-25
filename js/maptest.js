@@ -11,6 +11,7 @@ import {
     onAuthStateChanged,
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 // --- Litter Bugs V2 Firebase Config ---
 // This object contains your project's unique Firebase configuration keys.
@@ -268,14 +269,32 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('userStatus').style.display = 'flex';
         if (!currentUser) authModal.style.display = 'flex';
     });
-    loginSignupBtn.addEventListener('click', () => authModal.style.display = 'flex');
+    // MODIFIED: The auth modal listener now handles reCAPTCHA rendering
+    loginSignupBtn.addEventListener('click', () => {
+        authModal.style.display = 'flex';
+        // Render reCAPTCHA if it's in sign up mode and not already rendered
+        if (isSignUpMode && !document.getElementById('recaptcha-container').hasChildNodes()) {
+            const siteKey = "6Lc2cr0rAAAAAMm3gDnMbsqYsRJBk-CYDvzaNF2b"; // <<< IMPORTANT: PASTE YOUR KEY
+            grecaptcha.render('recaptcha-container', {
+                'sitekey': siteKey
+            });
+        }
+    });
+
     document.getElementById('switchAuthModeLink').addEventListener('click', (e) => {
         e.preventDefault();
         isSignUpMode = !isSignUpMode;
         updateAuthModalUI();
+        // Also handle reCAPTCHA rendering on switch
+        if (isSignUpMode && !document.getElementById('recaptcha-container').hasChildNodes()) {
+            const siteKey = "6Lc2cr0rAAAAAMm3gDnMbsqYsRJBk-CYDvzaNF2b"; // <<< IMPORTANT: PASTE YOUR KEY
+            grecaptcha.render('recaptcha-container', {
+                'sitekey': siteKey
+            });
+        }
     });
     authActionBtn.addEventListener('click', async () => {
-        if (isSignUpMode) await handleSignUp();
+        if (isSignUpMode) await Up();
         else await handleLogIn();
     });
     document.getElementById('logoutBtn').addEventListener('click', async () => await signOut(auth));
@@ -453,16 +472,45 @@ function updateAuthModalUI() {
  * Handles the user sign-up process, creating both a private user doc and a public profile.
  */
 async function handleSignUp() {
-    const email = document.getElementById('emailInput').value, password = document.getElementById('passwordInput').value, username = document.getElementById('usernameInput').value, ageCheckbox = document.getElementById('ageCheckbox'), authError = document.getElementById('authError');
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const username = document.getElementById('usernameInput').value;
+    const authError = document.getElementById('authError');
     authError.textContent = '';
-    if (!ageCheckbox.checked) { authError.textContent = 'You must certify that you are 18 or older to sign up.'; return; }
-    if (!username || username.trim().length < 3) { authError.textContent = 'Username must be at least 3 characters.'; return; }
+
+    // 1. Get the reCAPTCHA response token from the user
+    const recaptchaResponse = grecaptcha.getResponse();
+    if (!recaptchaResponse) {
+        authError.textContent = "Please complete the reCAPTCHA challenge.";
+        return;
+    }
+
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const userId = userCredential.user.uid;
-        await setDoc(doc(db, "users", userId), { email: userCredential.user.email, totalPins: 0, totalDistance: 0, totalRoutes: 0 });
-        await setDoc(doc(db, "publicProfiles", userId), { username, bio: "This user is new to Litter Bugs!", location: "", buyMeACoffeeLink: "", badges: {} });
-    } catch (error) { authError.textContent = error.message; }
+        // 2. Call our new backend Cloud Function
+        const functions = getFunctions(app);
+        const createUserWithRecaptcha = httpsCallable(functions, 'createUserWithRecaptcha');
+        
+        const result = await createUserWithRecaptcha({
+            email: email,
+            password: password,
+            username: username,
+            recaptchaToken: recaptchaResponse
+        });
+
+        if (result.data.error) {
+            authError.textContent = result.data.error;
+        } else {
+            console.log("User created successfully by backend:", result.data.uid);
+            // The onAuthStateChanged listener will handle the UI update automatically
+        }
+
+    } catch (error) {
+        console.error("Error calling Cloud Function:", error);
+        authError.textContent = error.message;
+    } finally {
+        // Reset the reCAPTCHA widget for the next attempt
+        grecaptcha.reset();
+    }
 }
 
 /**
