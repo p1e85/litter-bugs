@@ -1451,7 +1451,7 @@ async function shareCleanupResults() {
     const shareData = {
         title: 'My Litter Bugs Cleanup!',
         text: shareText,
-        url: 'https://www.p1creations.com/map.html' // Link to the app
+        url: 'https://www.litter-bugs.com/' // Link to the app
     };
 
     if (navigator.share) {
