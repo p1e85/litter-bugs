@@ -659,4 +659,5 @@ body {
 .mapboxgl-ctrl-geocoder .suggestions {
     background-color: rgba(255, 255, 255, 0.9) !important;
     border-radius: 10px !important;
+    z-index: 20 !important; /* A high z-index ensures suggestions appear ON TOP of other UI elements. */
 }
