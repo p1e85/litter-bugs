@@ -17,51 +17,31 @@ body {
 
 .top-bar-container {
     position: absolute;
-    top: 70px; /* Was 15px. This creates space for the geocoder. */
+    top: 65px;
     left: 15px;
     right: 15px;
     z-index: 10;
     display: flex;
-    flex-wrap: wrap; 
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
-.top-row {
+.top-bar-left {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
     gap: 10px;
+    flex-grow: 1; /* Allows this group to take up available space */
 }
 
-.top-bar-left, .top-bar-right {
+.top-bar-right {
     display: flex;
     gap: 10px;
-}
-
-.bottom-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
 }
 
 /* Media Query for larger screens (tablets and desktops). */
-@media (min-width: 640px) {
-    /* Switches the top bar to a single horizontal row on wider screens. */
+@media (min-width: 820px) {
     .top-bar-container {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between; /* Pushes the left and right groups apart. */
-    }
-    .top-row {
-        width: auto;
-        order: 2; /* Moves the main controls to the right side. */
-    }
-    .bottom-row {
-        width: auto;
-        order: 1; /* Moves the view controls to the left side. */
+        flex-wrap: nowrap;
+        justify-content: space-between;
     }
 }
 
