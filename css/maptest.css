@@ -518,6 +518,17 @@ body {
     flex-grow: 1;
     margin-left: 15px;
 }
+
+/* NEW: Styles to make the leaderboard names look like clickable links */
+.leaderboard-name a {
+    color: #0056b3;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.leaderboard-name a:hover {
+    color: #003d82;
+}
+
 .leaderboard-score {
     font-weight: bold;
     color: #007bff;
