@@ -239,6 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleMarkerVisibility();
     });
 
+    loginSignupBtn.addEventListener('click', () => {
+        authModal.style.display = 'flex';
+    });
+    
     // --- General Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
