@@ -269,38 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('userStatus').style.display = 'flex';
         if (!currentUser) authModal.style.display = 'flex';
     });
-    // MODIFIED: The auth modal listener now handles reCAPTCHA rendering
-async function handleSignUp() {
-    const email = document.getElementById('emailInput').value;
-    const password = document.getElementById('passwordInput').value;
-    const username = document.getElementById('usernameInput').value;
-    const ageCheckbox = document.getElementById('ageCheckbox');
-    const authError = document.getElementById('authError');
-    authError.textContent = '';
-    if (!ageCheckbox.checked) { authError.textContent = 'You must certify that you are 18 or older to sign up.'; return; }
-    if (!username || username.trim().length < 3) { authError.textContent = 'Username must be at least 3 characters.'; return; }
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const userId = userCredential.user.uid;
-        // Create the private user document
-        await setDoc(doc(db, "users", userId), { 
-            email: userCredential.user.email, 
-            totalPins: 0, 
-            totalDistance: 0, 
-            totalRoutes: 0 
-        });
-        // Create the public-facing profile document
-        await setDoc(doc(db, "publicProfiles", userId), { 
-            username, 
-            bio: "This user is new to Litter Bugs!", 
-            location: "", 
-            buyMeACoffeeLink: "", 
-            badges: {} 
-        });
-    } catch (error) { 
-        authError.textContent = error.message; 
-    }
-}
+    
     authActionBtn.addEventListener('click', async () => {
         if (isSignUpMode) await Up();
         else await handleLogIn();
@@ -483,41 +452,31 @@ async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     const username = document.getElementById('usernameInput').value;
+    const ageCheckbox = document.getElementById('ageCheckbox');
     const authError = document.getElementById('authError');
     authError.textContent = '';
-
-    // 1. Get the reCAPTCHA response token from the user
-    const recaptchaResponse = grecaptcha.getResponse();
-    if (!recaptchaResponse) {
-        authError.textContent = "Please complete the reCAPTCHA challenge.";
-        return;
-    }
-
+    if (!ageCheckbox.checked) { authError.textContent = 'You must certify that you are 18 or older to sign up.'; return; }
+    if (!username || username.trim().length < 3) { authError.textContent = 'Username must be at least 3 characters.'; return; }
     try {
-        // 2. Call our new backend Cloud Function
-        const functions = getFunctions(app);
-        const createUserWithRecaptcha = httpsCallable(functions, 'createUserWithRecaptcha');
-        
-        const result = await createUserWithRecaptcha({
-            email: email,
-            password: password,
-            username: username,
-            recaptchaToken: recaptchaResponse
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userId = userCredential.user.uid;
+        // Create the private user document
+        await setDoc(doc(db, "users", userId), { 
+            email: userCredential.user.email, 
+            totalPins: 0, 
+            totalDistance: 0, 
+            totalRoutes: 0 
         });
-
-        if (result.data.error) {
-            authError.textContent = result.data.error;
-        } else {
-            console.log("User created successfully by backend:", result.data.uid);
-            // The onAuthStateChanged listener will handle the UI update automatically
-        }
-
-    } catch (error) {
-        console.error("Error calling Cloud Function:", error);
-        authError.textContent = error.message;
-    } finally {
-        // Reset the reCAPTCHA widget for the next attempt
-        grecaptcha.reset();
+        // Create the public-facing profile document
+        await setDoc(doc(db, "publicProfiles", userId), { 
+            username, 
+            bio: "This user is new to Litter Bugs!", 
+            location: "", 
+            buyMeACoffeeLink: "", 
+            badges: {} 
+        });
+    } catch (error) { 
+        authError.textContent = error.message; 
     }
 }
 
