@@ -249,6 +249,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const isPasswordValid = passwordInput.value.length >= 6;
         const isUsernameValid = usernameInput.value.trim().length >= 3;
         const isAgeChecked = ageCheckbox.checked;
+
+        function onClick(e) {
+            e.preventDefault();
+            grecaptcha.enterprise.ready(async () => {
+              const token = await grecaptcha.enterprise.execute('6Ld_XNUrAAAAANBVut_Hmh9qmcglfrmLRvnxjeri', {action: 'LOGIN'});
+            });
+        }
+        
         if (isSignUpMode) {
             authActionBtn.disabled = !(isEmailValid && isPasswordValid && isUsernameValid && isAgeChecked);
         } else {
