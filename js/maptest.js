@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     authActionBtn.addEventListener('click', async () => {
-        if (isSignUpMode) await Up();
+        if (isSignUpMode) await updateDoc();
         else await handleLogIn();
     });
     document.getElementById('logoutBtn').addEventListener('click', async () => await signOut(auth));
