@@ -1064,22 +1064,39 @@ async function showPublicProfile(userId) {
             document.getElementById('profileUsername').textContent = profileData.username || 'Anonymous User';
             document.getElementById('profileLocation').textContent = profileData.location || '';
             document.getElementById('profileBio').textContent = profileData.bio || 'This user has not written a bio yet.';
-            
-            if (profileAchievementsContainer) {
-                profileAchievementsContainer.innerHTML = '';
-                const userBadges = profileData.badges || {};
-                let earnedBadgesCount = 0;
-                for (const badgeKey in allBadges) {
-                    if (userBadges[badgeKey] === true) {
-                        earnedBadgesCount++;
-                        const badgeInfo = allBadges[badgeKey];
-                        const badgeElement = document.createElement('div');
-                        badgeElement.className = 'badge-item';
-                        badgeElement.textContent = badgeInfo.icon;
-                        badgeElement.title = `${badgeInfo.name}: ${badgeInfo.description}`;
-                        profileAchievementsContainer.appendChild(badgeElement);
-                    }
+
+            // --- NEW: Populate the "Baseball Card Stats" ---
+            const distanceMiles = (profileData.totalDistance * 0.000621371).toFixed(2);
+            profileStatsContainer.innerHTML = `
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value">${profileData.totalPins || 0}</div>
+                    <div class="profile-stat-label">Items Pinned</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value">${distanceMiles}</div>
+                    <div class="profile-stat-label">Miles Cleaned</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value">${profileData.totalRoutes || 0}</div>
+                    <div class="profile-stat-label">Routes Completed</div>
+                </div>
+            `;
+
+            // --- Populate Achievements (Badges) ---
+            profileAchievementsContainer.innerHTML = '';
+            const userBadges = profileData.badges || {};
+            let earnedBadgesCount = 0;
+            for (const badgeKey in allBadges) {
+                if (userBadges[badgeKey] === true) {
+                    earnedBadgesCount++;
+                    const badgeInfo = allBadges[badgeKey];
+                    const badgeElement = document.createElement('div');
+                    badgeElement.className = 'badge-item';
+                    badgeElement.textContent = badgeInfo.icon;
+                    badgeElement.title = `${badgeInfo.name}: ${badgeInfo.description}`;
+                    profileAchievementsContainer.appendChild(badgeElement);
                 }
+            }
                 if (earnedBadgesCount === 0) profileAchievementsContainer.innerHTML = '<p class="no-badges-message">This user hasn\'t earned any badges yet.</p>';
             }
 
