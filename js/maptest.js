@@ -319,6 +319,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    leaderboardList.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('leaderboard-profile-link')) {
+            e.preventDefault();
+            const userId = e.target.closest('li').dataset.userid;
+            if (userId) {
+                leaderboardModal.style.display = 'none'; // Close leaderboard
+                showPublicProfile(userId); // Open profile
+            }
+        }
+    });
     
     window.addEventListener('click', (event) => {
         const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal, meetupModal, viewMeetupsModal];
