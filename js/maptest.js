@@ -270,29 +270,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentUser) authModal.style.display = 'flex';
     });
     // MODIFIED: The auth modal listener now handles reCAPTCHA rendering
-    loginSignupBtn.addEventListener('click', () => {
-        authModal.style.display = 'flex';
-        // Render reCAPTCHA if it's in sign up mode and not already rendered
-        if (isSignUpMode && !document.getElementById('recaptcha-container').hasChildNodes()) {
-            const siteKey = "6Ld_XNUrAAAAANBVut_Hmh9qmcglfrmLRvnxjeri"; // <<< IMPORTANT: PASTE YOUR KEY
-            grecaptcha.render('recaptcha-container', {
-                'sitekey': siteKey
-            });
-        }
-    });
-
-    document.getElementById('switchAuthModeLink').addEventListener('click', (e) => {
-        e.preventDefault();
-        isSignUpMode = !isSignUpMode;
-        updateAuthModalUI();
-        // Also handle reCAPTCHA rendering on switch
-        if (isSignUpMode && !document.getElementById('recaptcha-container').hasChildNodes()) {
-            const siteKey = "6Ld_XNUrAAAAANBVut_Hmh9qmcglfrmLRvnxjeri"; // <<< IMPORTANT: PASTE YOUR KEY
-            grecaptcha.render('recaptcha-container', {
-                'sitekey': siteKey
-            });
-        }
-    });
+async function handleSignUp() {
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const username = document.getElementById('usernameInput').value;
+    const ageCheckbox = document.getElementById('ageCheckbox');
+    const authError = document.getElementById('authError');
+    authError.textContent = '';
+    if (!ageCheckbox.checked) { authError.textContent = 'You must certify that you are 18 or older to sign up.'; return; }
+    if (!username || username.trim().length < 3) { authError.textContent = 'Username must be at least 3 characters.'; return; }
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userId = userCredential.user.uid;
+        // Create the private user document
+        await setDoc(doc(db, "users", userId), { 
+            email: userCredential.user.email, 
+            totalPins: 0, 
+            totalDistance: 0, 
+            totalRoutes: 0 
+        });
+        // Create the public-facing profile document
+        await setDoc(doc(db, "publicProfiles", userId), { 
+            username, 
+            bio: "This user is new to Litter Bugs!", 
+            location: "", 
+            buyMeACoffeeLink: "", 
+            badges: {} 
+        });
+    } catch (error) { 
+        authError.textContent = error.message; 
+    }
+}
     authActionBtn.addEventListener('click', async () => {
         if (isSignUpMode) await Up();
         else await handleLogIn();
