@@ -1068,10 +1068,11 @@ function calculateRouteDistance(coordinates) {
     }
     return totalDistance;
 }
+
 async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
-    if (!leaderboardList) return;
     leaderboardList.innerHTML = '<li>Loading...</li>';
+
     try {
         const profilesRef = collection(db, "publicProfiles");
         const q = query(profilesRef, orderBy(metric, "desc"), limit(10));
@@ -1087,14 +1088,16 @@ async function fetchAndDisplayLeaderboard(metric) {
         querySnapshot.forEach(doc => {
             const profileData = doc.data();
             const li = document.createElement('li');
+            li.dataset.userid = doc.id; // Add the user ID to the list item
             
             const score = metric === 'totalDistance'
                 ? `${(profileData.totalDistance * 0.000621371).toFixed(2)} mi`
                 : profileData.totalPins;
 
+            // MODIFIED: Username is now a clickable link
             li.innerHTML = `
                 <span class="leaderboard-rank">${rank}.</span>
-                <span class="leaderboard-name">${profileData.username}</span>
+                <span class="leaderboard-name"><a href="#" class="leaderboard-profile-link">${profileData.username}</a></span>
                 <span class="leaderboard-score">${score}</span>
             `;
             leaderboardList.appendChild(li);
