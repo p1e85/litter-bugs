@@ -650,3 +650,28 @@ body {
 .modal-button.share-button:hover {
     background-color: #218838;
 }
+
+/* NEW: Styles for the "Baseball Card Stats" on the public profile */
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 15px 0;
+    text-align: center;
+}
+.profile-stat-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+.profile-stat-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007bff;
+}
+.profile-stat-label {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-top: 5px;
+}
