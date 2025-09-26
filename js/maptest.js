@@ -136,8 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
     const shareBtn = document.getElementById('shareBtn');
-    const leaderboardList = document.getElementById('leaderboardList');
-    const leaderboardModal = document.getElementById('leaderboardModal');
 
     onAuthStateChanged(auth, async (user) => {
         const userStatus = document.getElementById('userStatus');
@@ -211,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         center: [-87.6298, 41.8781],
         zoom: 10
     });
-
+    
     const geocoder = new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl,
@@ -229,6 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleMarkerVisibility();
     });
 
+    loginSignupBtn.addEventListener('click', () => {
+        authModal.style.display = 'flex';
+    });
+    
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
@@ -257,10 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem('termsAccepted', 'true');
         document.getElementById('userStatus').style.display = 'flex';
         if (!currentUser) authModal.style.display = 'flex';
-    });
-    
-    loginSignupBtn.addEventListener('click', () => {
-        authModal.style.display = 'flex';
     });
     
     document.getElementById('authModal').addEventListener('click', (e) => {
@@ -321,17 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
-    leaderboardList.addEventListener('click', (e) => {
-        if (e.target && e.target.classList.contains('leaderboard-profile-link')) {
-            e.preventDefault();
-            const userId = e.target.closest('li').dataset.userid;
-            if (userId) {
-                leaderboardModal.style.display = 'none'; // Close leaderboard
-                showPublicProfile(userId); // Open profile
-            }
-        }
-    });
     
     window.addEventListener('click', (event) => {
         const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal, meetupModal, viewMeetupsModal];
@@ -373,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
     centerOnRouteBtn.addEventListener('click', centerOnRoute);
 });
 
-
+// All functions are defined below, outside the DOMContentLoaded listener.
 function initializeMapLayers() {
     if (!map.getSource('user-route')) map.addSource('user-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
     if (!map.getLayer('user-route')) map.addLayer({ id: 'user-route', type: 'line', source: 'user-route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#007bff', 'line-width': 5 } });
@@ -998,7 +985,6 @@ async function showPublicProfile(userId) {
     }
 }
 
-
 async function handleAccountDeletion() {
     if (!currentUser) return;
     if (!confirm("DANGER: Are you absolutely sure you want to permanently delete your account? This action cannot be undone.")) return;
@@ -1081,11 +1067,10 @@ function calculateRouteDistance(coordinates) {
     }
     return totalDistance;
 }
-
 async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
+    if (!leaderboardList) return;
     leaderboardList.innerHTML = '<li>Loading...</li>';
-
     try {
         const profilesRef = collection(db, "publicProfiles");
         const q = query(profilesRef, orderBy(metric, "desc"), limit(10));
@@ -1101,13 +1086,12 @@ async function fetchAndDisplayLeaderboard(metric) {
         querySnapshot.forEach(doc => {
             const profileData = doc.data();
             const li = document.createElement('li');
-            li.dataset.userid = doc.id; // Add the user ID to the list item
+            li.dataset.userid = doc.id;
             
             const score = metric === 'totalDistance'
                 ? `${(profileData.totalDistance * 0.000621371).toFixed(2)} mi`
                 : profileData.totalPins;
 
-            // MODIFIED: Username is now a clickable link
             li.innerHTML = `
                 <span class="leaderboard-rank">${rank}.</span>
                 <span class="leaderboard-name"><a href="#" class="leaderboard-profile-link">${profileData.username}</a></span>
@@ -1160,7 +1144,7 @@ async function fetchAndDisplayMyStats() {
         }
 
         const profileData = publicProfileSnap.data();
-        const distanceMiles = (profileData.totalDistance * 0.000621371).toFixed(2);
+        const distanceMiles = ((profileData.totalDistance || 0) * 0.000621371).toFixed(2);
         
         let statsHTML = `
             <div class="my-stats-grid">
