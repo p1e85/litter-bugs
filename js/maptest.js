@@ -281,6 +281,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('userStatus').style.display = 'flex';
         if (!currentUser) authModal.style.display = 'flex';
     });
+
+    document.getElementById('authModal').addEventListener('click', (e) => {
+        if (e.target.id === 'switchAuthModeLink') {
+            e.preventDefault();
+            isSignUpMode = !isSignUpMode;
+            updateAuthModalUI();
+        }
+    });
     
     authActionBtn.addEventListener('click', async () => {
         if (isSignUpMode) await handleSignUp();
