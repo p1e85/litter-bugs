@@ -136,6 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
     const shareBtn = document.getElementById('shareBtn');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const leaderboardModal = document.getElementById('leaderboardModal');
 
     onAuthStateChanged(auth, async (user) => {
         const userStatus = document.getElementById('userStatus');
@@ -318,6 +320,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchAndDisplayLeaderboard(tab.dataset.metric);
             }
         });
+    });
+
+    leaderboardList.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('leaderboard-profile-link')) {
+            e.preventDefault();
+            const userId = e.target.closest('li').dataset.userid;
+            if (userId) {
+                leaderboardModal.style.display = 'none'; // Close leaderboard
+                showPublicProfile(userId); // Open profile
+            }
+        }
     });
     
     window.addEventListener('click', (event) => {
