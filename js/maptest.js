@@ -1,3 +1,4 @@
+// --- Firebase SDK Setup ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -9,8 +10,8 @@ import {
     onAuthStateChanged,
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
+// --- Litter Bugs V2 Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyCE1b6VtJjUs0O5YvyLjeslxuHC8UlgJUM",
   authDomain: "garbagepathv2.firebaseapp.com",
@@ -21,12 +22,14 @@ const firebaseConfig = {
   measurementId: "G-SM46WXV0CN"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 const auth = getAuth();
 const storage = getStorage();
 console.log("Firebase Initialized!");
 
+// --- Global State ---
 let currentUser = null;
 let trackingWatcher = null;
 let routeCoordinates = [];
@@ -67,10 +70,12 @@ const allBadges = {
 };
 
 
+// --- Main App Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     
     checkAndClearOldData();
 
+    // --- Element References ---
     const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
@@ -136,7 +141,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewMeetupsModal = document.getElementById('viewMeetupsModal');
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
     const shareBtn = document.getElementById('shareBtn');
+    const leaderboardList = document.getElementById('leaderboardList');
 
+    // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
         const userStatus = document.getElementById('userStatus');
         const loggedInContent = document.getElementById('loggedInContent');
@@ -195,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Initial UI Setup ---
     if (sessionStorage.getItem('termsAccepted')) {
         termsModal.style.display = 'none';
         document.getElementById('userStatus').style.display = 'flex';
@@ -202,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         termsModal.style.display = 'flex';
     }
 
+    // --- Mapbox Setup ---
     mapboxgl.accessToken = 'pk.eyJ1IjoicDFjcmVhdGlvbnMiLCJhIjoiY2p6ajZvejJmMDZhaTNkcWpiN294dm12eCJ9.8ckNT6kfuJry7K7GAeIuxw';
     map = new mapboxgl.Map({
         container: 'map',
@@ -218,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     map.addControl(geocoder, 'top-left');
 
+    // --- Map Event Listeners ---
     map.on('load', () => {
         initializeMapLayers();
         setupPoiClickListeners();
@@ -227,10 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleMarkerVisibility();
     });
 
-    loginSignupBtn.addEventListener('click', () => {
-        authModal.style.display = 'flex';
-    });
-    
+    // --- General Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
@@ -259,6 +266,10 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem('termsAccepted', 'true');
         document.getElementById('userStatus').style.display = 'flex';
         if (!currentUser) authModal.style.display = 'flex';
+    });
+    
+    loginSignupBtn.addEventListener('click', () => {
+        authModal.style.display = 'flex';
     });
     
     document.getElementById('authModal').addEventListener('click', (e) => {
@@ -319,14 +330,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
+    
     leaderboardList.addEventListener('click', (e) => {
         if (e.target && e.target.classList.contains('leaderboard-profile-link')) {
             e.preventDefault();
             const userId = e.target.closest('li').dataset.userid;
             if (userId) {
-                leaderboardModal.style.display = 'none'; // Close leaderboard
-                showPublicProfile(userId); // Open profile
+                leaderboardModal.style.display = 'none';
+                showPublicProfile(userId);
             }
         }
     });
@@ -371,7 +382,8 @@ document.addEventListener('DOMContentLoaded', () => {
     centerOnRouteBtn.addEventListener('click', centerOnRoute);
 });
 
-// All functions are defined below, outside the DOMContentLoaded listener.
+// --- Functions ---
+// (All functions are now defined globally)
 function initializeMapLayers() {
     if (!map.getSource('user-route')) map.addSource('user-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
     if (!map.getLayer('user-route')) map.addLayer({ id: 'user-route', type: 'line', source: 'user-route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#007bff', 'line-width': 5 } });
@@ -1369,4 +1381,3 @@ async function shareCleanupResults() {
         }
     }
 }
-
