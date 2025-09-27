@@ -13,21 +13,50 @@
 </head>
 <body>
 
-    <!-- Top Bar Container (RESTRUCTURED) -->
-    <div class="top-bar-container">
-        <!-- This group will be on the left on desktop -->
-        <div class="top-bar-left">
-            <button id="leaderboardBtn" class="top-bar-button">🏆 Leaderboard</button>
-            <button id="communityBtn" class="community-button off">🌎 Community View: OFF</button>
+      <!-- Top UI Container (RESTRUCTURED) -->
+    <div class="top-ui-container">
+        <div class="top-row">
+            <div id="geocoder-container"></div>
+            <div class="top-bar-right">
+                <button id="menuBtn" class="top-bar-button">☰ Menu</button>
+            </div>
         </div>
-        <!-- This group will be on the right on desktop -->
-        <div class="top-bar-right">
-            <button id="infoBtn" class="top-bar-button">ℹ️ Info</button>
-            <button id="changeStyleBtn" class="top-bar-button">🎨 Change Style</button>
-            <button id="centerOnRouteBtn" class="top-bar-button" disabled>🎯 Find Route</button>
-            <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="donate-button">
+        <div class="bottom-row">
+             <button id="leaderboardBtn" class="top-bar-button">🏆 Leaderboard</button>
+             <button id="communityBtn" class="community-button off">🌎 Community View: OFF</button>
+        </div>
+    </div>
+
+    <!-- NEW: Menu Modal -->
+    <div id="menuModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Menu</h2>
+            <button id="infoBtn" class="modal-button">ℹ️ Info</button>
+            <button id="changeStyleBtn" class="modal-button">🎨 Change Style</button>
+            <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="modal-button donate-button">
                 ☕ Support
             </a>
+        </div>
+    </div>
+
+    <!-- Data Management Modal (MODIFIED) -->
+    <div id="dataModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Data Management</h2>
+            <button id="editProfileBtn" class="modal-button edit-profile">👤 Edit My Profile</button>
+            <button id="saveBtn" class="modal-button">Save Private Session</button>
+            <button id="loadBtn" class="modal-button">Load Private Session</button>
+            <!-- "Find Route" button is now here -->
+            <button id="centerOnRouteBtn" class="modal-button" disabled>🎯 Find Route</button>
+            <button id="managePublicationsBtn" class="modal-button manage">Manage My Publications</button>
+            <hr>
+            <p>Publish your completed route to the public community map for everyone to see.</p>
+            <button id="publishBtn" class="modal-button publish">🚀 Publish to Community</button>
+            <hr>
+            <p>Export your current session as a GeoJSON file.</p>
+            <button id="exportBtn" class="modal-button export">Export as GeoJSON</button>
         </div>
     </div>
 
