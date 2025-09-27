@@ -45,7 +45,7 @@ body {
 }
 
 #geocoder-container {
-    flex-grow: 1; /* Allows search bar to take available space */
+    flex-grow: 1;
 }
 
 .mapboxgl-ctrl-geocoder {
@@ -571,7 +571,7 @@ body {
     border-radius: 20px;
     background-color: #f0f0f0;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color: 0.2s, color 0.2s;
 }
 .leaderboard-tab.active {
     background-color: #007bff;
