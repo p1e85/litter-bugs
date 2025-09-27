@@ -15,34 +15,51 @@ body {
     height: 100%;
 }
 
-.top-bar-container {
+/* --- Top UI Layout --- */
+.top-ui-container {
     position: absolute;
-    top: 65px;
-    left: 15px;
-    right: 15px;
+    top: 10px;
+    left: 10px;
+    right: 10px;
     z-index: 10;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 10px;
 }
 
-.top-bar-left {
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.bottom-row {
     display: flex;
     gap: 10px;
-    flex-grow: 1; /* Allows this group to take up available space */
 }
 
-.top-bar-right {
+.top-bar-left, .top-bar-right {
     display: flex;
     gap: 10px;
 }
 
-/* Media Query for larger screens (tablets and desktops). */
-@media (min-width: 820px) {
-    .top-bar-container {
-        flex-wrap: nowrap;
-        justify-content: space-between;
-    }
+#geocoder-container {
+    flex-grow: 1; /* Allows search bar to take available space */
+}
+
+.mapboxgl-ctrl-geocoder {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(5px);
+}
+.mapboxgl-ctrl-geocoder .suggestions {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    z-index: 20 !important;
 }
 
 .bottom-container {
@@ -99,13 +116,6 @@ body {
     transition: background-color: 0.3s;
     white-space: nowrap;
     text-decoration: none;
-    flex-grow: 1;
-}
-.top-bar-button:disabled {
-    background-color: rgba(230, 230, 230, 0.5);
-    color: #999;
-    cursor: not-allowed;
-    backdrop-filter: none;
 }
 .top-bar-button:disabled:hover {
     background-color: rgba(230, 230, 230, 0.5);
@@ -177,6 +187,10 @@ body {
 .modal-button:hover {
     opacity: 0.9;
 }
+.modal-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
 .modal-button.edit-profile {
     background-color: #5a6268;
 }
@@ -195,6 +209,13 @@ body {
 }
 .delete-account-button:hover {
     background-color: #c82333;
+}
+.modal-button.donate-button {
+    background-color: #ffc107;
+    color: #000;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.5;
 }
 
 
@@ -302,15 +323,15 @@ body {
     color: #dc3545; margin-top: 15px; min-height: 20px; font-size: 14px;
 }
 
-#sessionList, #localSessionList, #publishedRoutesList {
+#sessionList, #localSessionList, #publishedRoutesList, #meetupsList {
     list-style: none; padding: 0; margin-top: 20px;
     max-height: 40vh; overflow-y: auto; border: 1px solid #eee;
 }
-#sessionList li, #localSessionList li, #publishedRoutesList li {
+#sessionList li, #localSessionList li, #publishedRoutesList li, #meetupsList li {
     padding: 15px; border-bottom: 1px solid #eee; text-align: left;
     display: flex; justify-content: space-between; align-items: center; gap: 10px;
 }
-#publishedRoutesList li {
+#publishedRoutesList li, #meetupsList li {
     cursor: default;
 }
 #sessionList li:hover, #localSessionList li:hover {
@@ -339,6 +360,16 @@ body {
     border-left: 4px solid #17a2b8;
 }
 
+.safety-disclaimer {
+    font-size: 0.85em;
+    color: #6c757d;
+    background-color: #fffbe6;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid #ffc107;
+    margin: 10px 0;
+}
+
 .pin-popup-form {
     display: flex;
     flex-direction: column;
@@ -361,6 +392,27 @@ body {
     color: white;
     cursor: pointer;
 }
+.poi-popup-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.poi-popup-buttons button {
+    flex-grow: 1;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+}
+.poi-popup-buttons .schedule-btn {
+    background-color: #007bff;
+}
+.poi-popup-buttons .view-btn {
+    background-color: #28a745;
+}
+
 
 .profile-form {
     display: flex;
@@ -400,6 +452,29 @@ body {
     margin-top: 20px;
     white-space: pre-wrap;
 }
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 15px 0;
+    text-align: center;
+}
+.profile-stat-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+.profile-stat-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #007bff;
+}
+.profile-stat-label {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-top: 5px;
+}
 .badge-container {
     display: flex;
     flex-wrap: wrap;
@@ -435,12 +510,7 @@ body {
     display: none;
 }
 
-.safety-modal {
-    max-width: 480px;
-    text-align: center;
-}
-
-.summary-modal {
+.safety-modal, .summary-modal, .achievement-modal {
     max-width: 480px;
     text-align: center;
 }
@@ -465,6 +535,29 @@ body {
     font-size: 0.9em;
     color: #6c757d;
     margin-top: 5px;
+}
+.modal-button.share-button {
+    background-color: #28a745;
+    margin-bottom: 10px;
+}
+.modal-button.share-button:hover {
+    background-color: #218838;
+}
+.achievement-modal {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+.achievement-icon {
+    font-size: 4em;
+    display: block;
+    margin-bottom: 15px;
+}
+.achievement-modal h2 {
+    color: #007bff;
+}
+.achievement-modal h3 {
+    margin: 10px 0;
+    font-size: 1.5em;
 }
 .leaderboard-tabs {
     display: flex;
@@ -518,8 +611,6 @@ body {
     flex-grow: 1;
     margin-left: 15px;
 }
-
-/* NEW: Styles to make the leaderboard names look like clickable links */
 .leaderboard-name a {
     color: #0056b3;
     text-decoration: underline;
@@ -528,53 +619,43 @@ body {
 .leaderboard-name a:hover {
     color: #003d82;
 }
-
 .leaderboard-score {
     font-weight: bold;
     color: #007bff;
 }
-
-/* NEW: Styles for the "My Stats" section in the leaderboard */
 .my-stats-container {
     text-align: center;
     padding-top: 20px;
 }
-
 .my-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
     margin-bottom: 25px;
 }
-
 .stat-card {
     background-color: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
     border: 1px solid #e9ecef;
 }
-
 .my-stats-value {
     font-size: 1.75em;
     font-weight: bold;
     color: #007bff;
 }
-
 .my-stats-label {
     font-size: 0.9em;
     color: #6c757d;
     margin-top: 5px;
 }
-
 .my-stats-badges .badge-container {
     margin-top: 10px;
 }
-
 .login-prompt {
     font-style: italic;
     color: #6c757d;
 }
-
 
 /* --- User Status Display & Photo Markers --- */
 .user-status-display {
@@ -600,89 +681,4 @@ body {
     background-size: cover; 
     background-position: center; 
     cursor: pointer;
-}
-
-/* NEW: Styles for the Meetup Modals */
-.poi-popup-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-.poi-popup-buttons button {
-    flex-grow: 1;
-    padding: 8px 10px;
-    font-size: 14px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    cursor: pointer;
-}
-.poi-popup-buttons .schedule-btn {
-    background-color: #007bff;
-}
-.poi-popup-buttons .view-btn {
-    background-color: #28a745;
-}
-
-.safety-disclaimer {
-    font-size: 0.85em;
-    color: #6c757d;
-    background-color: #fffbe6;
-    padding: 10px;
-    border-radius: 5px;
-    border-left: 4px solid #ffc107;
-    margin: 10px 0;
-}
-
-/* NEW: Styles for the Mapbox Geocoder (Search Bar) */
-.mapboxgl-ctrl-geocoder {
-    margin: 10px;
-    border-radius: 20px !important; /* Force rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-}
-.mapboxgl-ctrl-geocoder--input {
-    font-family: inherit !important;
-}
-.mapboxgl-ctrl-geocoder .suggestions {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border-radius: 10px !important;
-    z-index: 20 !important; /* A high z-index ensures suggestions appear ON TOP of other UI elements. */
-}
-
-/* NEW: Style for the Share Button */
-.modal-button.share-button {
-    background-color: #28a745;
-    margin-bottom: 10px; /* Add some space below the share button */
-}
-.modal-button.share-button:hover {
-    background-color: #218838;
-}
-
-/* NEW: Styles for the "Baseball Card Stats" on the public profile */
-.profile-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin: 15px 0;
-    text-align: center;
-}
-.profile-stat-card {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-.profile-stat-value {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #007bff;
-}
-.profile-stat-label {
-    font-size: 0.8em;
-    color: #6c757d;
-    margin-top: 5px;
 }
