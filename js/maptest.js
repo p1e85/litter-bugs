@@ -254,6 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
     usernameInput.addEventListener('input', validateSignUpForm);
     ageCheckbox.addEventListener('change', validateSignUpForm);
     infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
+
+event listeners for the new Menu modal
+    menuBtn.addEventListener('click', () => menuModal.style.display = 'flex');
+    menuModalCloseBtn.addEventListener('click', () => menuModal.style.display = 'none');
     infoModalCloseBtn.addEventListener('click', () => infoModal.style.display = 'none');
     viewTermsLink.addEventListener('click', (e) => {
         e.preventDefault();
