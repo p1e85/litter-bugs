@@ -7,13 +7,11 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪲</text></svg>">
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
-        <!-- NEW: Google reCAPTCHA Library -->
-     <script src="https://www.google.com/recaptcha/enterprise.js?render=6Ld_XNUrAAAAANBVut_Hmh9qmcglfrmLRvnxjeri"></script>
     <link rel="stylesheet" href="css/maptest.css">
 </head>
 <body>
 
-      <!-- Top UI Container (RESTRUCTURED) -->
+    <!-- Top UI Container -->
     <div class="top-ui-container">
         <div class="top-row">
             <div id="geocoder-container"></div>
@@ -27,7 +25,7 @@
         </div>
     </div>
 
-    <!-- NEW: Menu Modal -->
+    <!-- Menu Modal -->
     <div id="menuModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -37,26 +35,6 @@
             <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="modal-button donate-button">
                 ☕ Support
             </a>
-        </div>
-    </div>
-
-    <!-- Data Management Modal (MODIFIED) -->
-    <div id="dataModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Data Management</h2>
-            <button id="editProfileBtn" class="modal-button edit-profile">👤 Edit My Profile</button>
-            <button id="saveBtn" class="modal-button">Save Private Session</button>
-            <button id="loadBtn" class="modal-button">Load Private Session</button>
-            <!-- "Find Route" button is now here -->
-            <button id="centerOnRouteBtn" class="modal-button" disabled>🎯 Find Route</button>
-            <button id="managePublicationsBtn" class="modal-button manage">Manage My Publications</button>
-            <hr>
-            <p>Publish your completed route to the public community map for everyone to see.</p>
-            <button id="publishBtn" class="modal-button publish">🚀 Publish to Community</button>
-            <hr>
-            <p>Export your current session as a GeoJSON file.</p>
-            <button id="exportBtn" class="modal-button export">Export as GeoJSON</button>
         </div>
     </div>
 
@@ -70,11 +48,11 @@
                 <p>Litter Bugs transforms the chore of cleaning up our neighborhoods into a visible and rewarding achievement. By tracking your cleanup routes and pinning the litter you collect, you create a tangible record of your positive impact. Share your efforts on the community map to inspire others, see our collective progress, and help identify areas that need our attention the most.</p>
                 <h4>How to Use the App</h4>
                 <ol class="info-list">
-                    <li><strong>Sign Up or Skip:</strong> Create an account to save your data to the cloud, or 'Skip' to use the app as a guest (your data will be saved only on this browser).</li>
+                    <li><strong>Sign Up or Skip:</strong> Create an account to save your data to the cloud, or 'Skip' to use the app as a guest...</li>
                     <li><strong>Track a Route:</strong> Press 'Start Tracking' to draw your path on the map as you walk.</li>
-                    <li><strong>Pin Litter:</strong> When you find litter, press 'Pin Picture' to take a photo. This will drop a pin at your location.</li>
-                    <li><strong>Save/Load:</strong> Use the 'Data' button to save your current session or load a previous one. You can save multiple named sessions.</li>
-                    <li><strong>Publish:</strong> When logged in, you can use the 'Publish to Community' button to share your completed route with everyone.</li>
+                    <li><strong>Pin Litter:</strong> When you find litter, press 'Pin Picture' to take a photo.</li>
+                    <li><strong>Save/Load:</strong> Use the 'Data' button to save your current session or load a previous one.</li>
+                    <li><strong>Publish:</strong> When logged in, you can use the 'Publish to Community' button to share your completed route.</li>
                     <li><strong>Community View:</strong> Toggle the 'Community View' button to see all the routes published by other users!</li>
                 </ol>
             </div>
@@ -87,11 +65,11 @@
         <div class="modal-content">
             <h2>Terms of Use</h2>
             <div class="terms-box">
-                <p><strong>AGE REQUIREMENT:</strong> You must be 18 years of age or older to use this Service, including creating an account or using it as a guest. By using this Service, you represent and warrant that you are 18 years of age or older.</p>
-                <p>Welcome to Litter Bugs! By accessing or using our application (the "Service"), you agree to be bound by these Terms of Use.</p>
-                <p><strong>1. Description of Service:</strong> This Service is for the sole purpose of identifying and documenting refuse, trash, and litter (collectively, "Garbage").</p>
-                <p><strong>2. Prohibited Content:</strong> You may NOT upload any photograph containing people, illegal activities, or personal information. The focus must be exclusively on Garbage.</p>
-                <p><strong>3. Disclaimer:</strong> This Service is provided "AS IS". Your use of this service is entirely at your own risk. We are not liable for any damages or harm arising from your use of the Service.</p>
+                <p><strong>AGE REQUIREMENT:</strong> You must be 18 years of age or older...</p>
+                <p>Welcome to Litter Bugs! By accessing or using our application you agree to be bound by these Terms of Use.</p>
+                <p><strong>1. Description of Service...</strong></p>
+                <p><strong>2. Prohibited Content...</strong></p>
+                <p><strong>3. Disclaimer...</strong></p>
             </div>
             <div class="agreement-section">
                 <input type="checkbox" id="termsCheckbox">
@@ -114,10 +92,6 @@
                     <input type="checkbox" id="ageCheckbox">
                     <label for="ageCheckbox">I certify that I am 18 years of age or older.</label>
                 </div>
-
-                <!-- NEW: reCAPTCHA Container -->
-                <div id="recaptcha-container" class="recaptcha-container"></div>
-                
                 <button id="authActionBtn" disabled>Sign Up</button>
             </div>
             <hr>
@@ -126,12 +100,11 @@
         </div>
     </div>
     
-    <!-- Modal for Editing User Profile -->
+    <!-- Profile Modals -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Edit Your Public Profile</h2>
-            <p>This information will be visible to other users when they click your username on the community map.</p>
             <div class="profile-form">
                 <label for="bioInput">Short Bio</label>
                 <textarea id="bioInput" placeholder="Tell the community a little about yourself..." maxlength="150"></textarea>
@@ -145,8 +118,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal for Viewing a Public User Profile -->
     <div id="publicProfileModal" class="modal">
         <div class="modal-content profile-modal">
             <span class="close-btn">&times;</span>
@@ -154,11 +125,8 @@
             <p id="profileLocation" class="profile-location"></p>
             <p id="profileBio" class="profile-bio"></p>
             <hr>
-            <!-- NEW: Container for Lifetime Stats -->
             <h4>Lifetime Stats</h4>
-            <div id="profileStats" class="profile-stats-grid">
-                <!-- Stats will be populated here by JavaScript -->
-            </div>
+            <div id="profileStats" class="profile-stats-grid"></div>
             <hr>
             <h4>Achievements</h4>
             <div id="profileAchievements" class="badge-container"></div>
@@ -201,7 +169,6 @@
                     <span class="stat-label">Duration</span>
                 </div>
             </div>
-            <!-- NEW: Share Button -->
             <button id="shareBtn" class="modal-button share-button">📣 Share Your Cleanup!</button>
             <button id="summaryOkBtn" class="modal-button">Awesome!</button>
         </div>
@@ -232,8 +199,8 @@
             <button id="achievementOkBtn" class="modal-button">Awesome!</button>
         </div>
     </div>
-
-    <!-- Schedule a Meetup Modal -->
+    
+    <!-- Meetup Modals -->
     <div id="meetupModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -247,7 +214,7 @@
                 <textarea id="meetupDescriptionInput" placeholder="e.g., Let's meet by the main entrance at 9 AM!" maxlength="200"></textarea>
                 
                 <div class="safety-disclaimer">
-                    <strong>Safety First:</strong> You are organizing a public event. For your safety and the safety of others, always meet in well-lit, public places and be aware of your surroundings. Litter Bugs is a platform for connecting people; we are not responsible for any incidents that occur at user-organized meetups.
+                    <strong>Safety First:</strong> You are organizing a public event...
                 </div>
                 <div class="agreement-section">
                     <input type="checkbox" id="safetyCheckbox">
@@ -258,8 +225,6 @@
             </div>
         </div>
     </div>
-
-    <!-- View Scheduled Meetups Modal -->
     <div id="viewMeetupsModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -268,7 +233,7 @@
         </div>
     </div>
 
-    <!-- Map container -->
+    <!-- Map Container -->
     <div id='map'></div>
 
     <!-- Bottom Container -->
@@ -301,6 +266,7 @@
             <button id="editProfileBtn" class="modal-button edit-profile">👤 Edit My Profile</button>
             <button id="saveBtn" class="modal-button">Save Private Session</button>
             <button id="loadBtn" class="modal-button">Load Private Session</button>
+            <button id="centerOnRouteBtn" class="modal-button" disabled>🎯 Find Route</button>
             <button id="managePublicationsBtn" class="modal-button manage">Manage My Publications</button>
             <hr>
             <p>Publish your completed route to the public community map for everyone to see.</p>
@@ -352,4 +318,5 @@
 
 </body>
 </html>
+
 
