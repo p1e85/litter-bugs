@@ -44,3 +44,4 @@ export function setIsSignUpMode(isSignup) { isSignUpMode = isSignup; }
 export function setUserMarkers(markers) { userMarkers = markers; }
 export function setCommunityMarkers(markers) { communityMarkers = markers; }
 export function setTrackingStartTime(time) { trackingStartTime = time; }
+
