@@ -7,7 +7,6 @@ import { getFirestore, doc, getDoc, collection, query, orderBy, limit, where, on
 import * as state from './state.js';
 import { allBadges, profanityList } from './config.js';
 import { calculateRouteDistance, updateUserPinsSource } from './map.js';
-import { showPublicProfile } from './ui.js';
 
 const db = getFirestore();
 
