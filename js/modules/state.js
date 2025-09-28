@@ -1,6 +1,16 @@
-// This file acts as a centralized store for the application's shared state.
-// Other modules will import these variables to read or modify them.
+// --- State Module ---
+// This file acts as a centralized store for the application's shared, mutable state.
+// Other modules will import these variables to read their current values or import the
+// setter functions to update them. This prevents state from being scattered across
+// the entire application.
 
+// --- Firebase Service Handles ---
+// These will be initialized in main.js and set here for other modules to use.
+export let db = null;
+export let auth = null;
+export let storage = null;
+
+// --- Application State Variables ---
 export let currentUser = null;
 export let trackingWatcher = null;
 export let routeCoordinates = [];
@@ -14,7 +24,14 @@ export let userMarkers = [];
 export let communityMarkers = [];
 export let trackingStartTime = null;
 
-// Functions to update state
+
+// --- State Setter Functions ---
+// These functions are the designated way to update the application's state from other modules.
+
+export function setDb(dbInstance) { db = dbInstance; }
+export function setAuth(authInstance) { auth = authInstance; }
+export function setStorage(storageInstance) { storage = storageInstance; }
+
 export function setCurrentUser(user) { currentUser = user; }
 export function setTrackingWatcher(watcher) { trackingWatcher = watcher; }
 export function setRouteCoordinates(coords) { routeCoordinates = coords; }
@@ -27,4 +44,3 @@ export function setIsSignUpMode(isSignup) { isSignUpMode = isSignup; }
 export function setUserMarkers(markers) { userMarkers = markers; }
 export function setCommunityMarkers(markers) { communityMarkers = markers; }
 export function setTrackingStartTime(time) { trackingStartTime = time; }
-
