@@ -1,13 +1,13 @@
 // --- Firestore Data Module ---
-// This module handles all interactions with the Firebase Firestore database.
-// It contains functions for creating, reading, updating, and deleting data,
+// This module handles all interactions with the Firebase Firestore database and local storage.
+// It contains functions for creating, reading,updating, and deleting data,
 // as well as helper functions for converting data formats.
 
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import * as state from './state.js';
-import { showAchievementPopup, populateLocalSessionList } from './ui.js';
-import { clearCurrentSession, displaySessionData, clearCommunityRoutes, fetchAndDisplayCommunityRoutes } from './map.js';
+import * as ui from './ui.js';
+import * as map from './map.js';
 
 const db = getFirestore();
 
@@ -71,11 +71,11 @@ export async function publishRoute() {
         }
 
         if (newBadgeFound) {
-            showAchievementPopup(newBadgeFound);
+            ui.showAchievementPopup(newBadgeFound);
         } else {
             alert("Success! Your route has been published.");
         }
-        clearCurrentSession();
+        map.clearCurrentSession();
     } catch (error) { 
         console.error("Error publishing route:", error); 
         alert("There was an error publishing your route."); 
@@ -107,11 +107,11 @@ export async function saveSession() {
 
 export async function loadSession() {
     if (!state.currentUser) {
-        populateLocalSessionList();
+        ui.populateLocalSessionList();
         document.getElementById('localSessionsModal').style.display = 'flex';
         return;
     }
-    await populateSessionList();
+    await ui.populateSessionList();
     document.getElementById('sessionsModal').style.display = 'flex';
 }
 
@@ -140,8 +140,8 @@ export async function deletePublishedRoute(routeId) {
             alert("Route deleted from the community map.");
             populatePublishedRoutesList();
             if (state.isCommunityViewOn) {
-                clearCommunityRoutes();
-                fetchAndDisplayCommunityRoutes();
+                map.clearCommunityRoutes();
+                map.fetchAndDisplayCommunityRoutes();
             }
         } catch (error) { console.error("Error deleting published route:", error); alert("Failed to delete route."); }
     }
@@ -230,5 +230,22 @@ export async function handleMeetupSubmit() {
         console.error("Error scheduling meetup:", error);
         alert("There was an error scheduling your meetup.");
     }
+}
+
+export function exportGeoJSON() {
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
+    const fileName = `litter_bugs_data_${timestamp}.geojson`;
+    const pinFeatures = state.photoPins.map(pin => ({ type: 'Feature', geometry: { type: 'Point', coordinates: pin.coords }, properties: { title: pin.title, image_url: pin.imageURL || 'local_data', category: pin.category } }));
+    const routeFeature = { type: 'Feature', geometry: { type: 'LineString', coordinates: state.routeCoordinates }, properties: {} };
+    const geojson = { type: 'FeatureCollection', features: [...pinFeatures, routeFeature] };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojson, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", fileName);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    document.getElementById('dataModal').style.display = 'none';
 }
 
