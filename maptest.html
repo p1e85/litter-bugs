@@ -11,7 +11,7 @@
 </head>
 <body>
 
-    <!-- Top UI Container -->
+   <!-- Top UI Container (RESTRUCTURED) -->
     <div class="top-ui-container">
         <div class="top-row">
             <div id="geocoder-container"></div>
@@ -22,16 +22,19 @@
         <div class="bottom-row">
              <button id="leaderboardBtn" class="top-bar-button">🏆 Leaderboard</button>
              <button id="communityBtn" class="community-button off">🌎 Community View: OFF</button>
+             <!-- "Change Style" button moved here -->
+             <button id="changeStyleBtn" class="top-bar-button">🎨 Change Style</button>
         </div>
     </div>
 
-    <!-- Menu Modal -->
+    <!-- Menu Modal (MODIFIED) -->
     <div id="menuModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Menu</h2>
+            <!-- "Edit Profile" button moved here -->
+            <button id="editProfileBtn" class="modal-button edit-profile">👤 Edit My Profile</button>
             <button id="infoBtn" class="modal-button">ℹ️ Info</button>
-            <button id="changeStyleBtn" class="modal-button">🎨 Change Style</button>
             <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="modal-button donate-button">
                 ☕ Support
             </a>
@@ -257,13 +260,12 @@
         </div>
     </div>
 
-    <!-- Data Management Modal -->
+             <!-- Data Management Modal (MODIFIED) -->
     <div id="dataModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Data Management</h2>
-            <p>Manage your private sessions or your public contributions.</p>
-            <button id="editProfileBtn" class="modal-button edit-profile">👤 Edit My Profile</button>
+            <!-- "Edit Profile" button was removed from here -->
             <button id="saveBtn" class="modal-button">Save Private Session</button>
             <button id="loadBtn" class="modal-button">Load Private Session</button>
             <button id="centerOnRouteBtn" class="modal-button" disabled>🎯 Find Route</button>
