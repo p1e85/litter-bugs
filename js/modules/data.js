@@ -3,11 +3,11 @@
 // It contains functions for creating, reading, updating, and deleting data,
 // as well as helper functions for converting data formats.
 
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import * as state from './state.js';
-import * as ui from './ui.js';
-import * as map from './map.js';
+import { showAchievementPopup, populateLocalSessionList } from './ui.js';
+import { clearCurrentSession, displaySessionData, clearCommunityRoutes, fetchAndDisplayCommunityRoutes } from './map.js';
 
 const db = getFirestore();
 
@@ -16,6 +16,22 @@ export function convertRouteForFirestore(coordsArray) { if (!coordsArray) return
 export function convertRouteFromFirestore(coordsData) { if (!coordsData || coordsData.length === 0) return []; if (Array.isArray(coordsData[0])) { return coordsData; } return coordsData.map(coord => [coord.lng, coord.lat]); }
 export function convertPinsForFirestore(pinsArray) { if (!pinsArray) return []; return pinsArray.map(pin => { const newPin = { ...pin }; if (Array.isArray(newPin.coords)) { newPin.coords = { lng: newPin.coords[0], lat: newPin.coords[1] }; } return newPin; }); }
 export function convertPinsFromFirestore(pinsData) { if (!pinsData || pinsData.length === 0) return []; return pinsData.map(pin => { const newPin = { ...pin }; if (newPin.coords && typeof newPin.coords === 'object' && !Array.isArray(newPin.coords)) { newPin.coords = [newPin.coords.lng, newPin.coords.lat]; } return newPin; }); }
+
+export function checkAndClearOldData() {
+    const guestSessionsJSON = localStorage.getItem('guestSessions');
+    if (guestSessionsJSON) {
+        try {
+            const guestSessions = JSON.parse(guestSessionsJSON);
+            if (guestSessions.length > 0 && guestSessions[0].route && Array.isArray(guestSessions[0].route[0])) {
+                alert("The app has been updated. Your old locally saved sessions are no longer compatible and will be cleared.");
+                localStorage.removeItem('guestSessions');
+            }
+        } catch (error) {
+            console.error("Error parsing old guest sessions, clearing data.", error);
+            localStorage.removeItem('guestSessions');
+        }
+    }
+}
 
 export async function publishRoute() {
     if (!state.currentUser) return;
@@ -55,11 +71,11 @@ export async function publishRoute() {
         }
 
         if (newBadgeFound) {
-            ui.showAchievementPopup(newBadgeFound);
+            showAchievementPopup(newBadgeFound);
         } else {
             alert("Success! Your route has been published.");
         }
-        map.clearCurrentSession();
+        clearCurrentSession();
     } catch (error) { 
         console.error("Error publishing route:", error); 
         alert("There was an error publishing your route."); 
@@ -99,103 +115,6 @@ export async function loadSession() {
     document.getElementById('sessionsModal').style.display = 'flex';
 }
 
-export function populateLocalSessionList() {
-    const localSessionList = document.getElementById('localSessionList');
-    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
-    localSessionList.innerHTML = '';
-    if (guestSessions.length === 0) { localSessionList.innerHTML = '<li>No locally saved sessions found.</li>'; return; }
-    guestSessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach((sessionData, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
-        li.querySelector('div').addEventListener('click', () => loadSpecificLocalSession(index));
-        li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deleteLocalSession(index, sessionData.sessionName); });
-        localSessionList.appendChild(li);
-    });
-}
-
-export function deleteLocalSession(sessionIndex, sessionName) {
-    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
-        let guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
-        guestSessions.splice(sessionIndex, 1);
-        localStorage.setItem('guestSessions', JSON.stringify(guestSessions));
-        alert("Session deleted.");
-        populateLocalSessionList();
-    }
-}
-
-export function loadSpecificLocalSession(sessionIndex) {
-    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
-    const sessionData = guestSessions[sessionIndex];
-    if (sessionData) {
-        map.clearCurrentSession();
-        const convertedData = { ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) };
-        map.displaySessionData(convertedData);
-        alert(`Session "${sessionData.sessionName}" loaded!`);
-        document.getElementById('localSessionsModal').style.display = 'none';
-        document.getElementById('centerOnRouteBtn').classList.remove('disabled');
-    }
-}
-
-export async function populateSessionList() {
-    const sessionList = document.getElementById('sessionList');
-    sessionList.innerHTML = '<li>Loading...</li>';
-    try {
-        const q = query(collection(db, "users", state.currentUser.uid, "privateSessions"), orderBy("timestamp", "desc"));
-        const querySnapshot = await getDocs(q);
-        sessionList.innerHTML = '';
-        if (querySnapshot.empty) { sessionList.innerHTML = '<li>No saved cloud sessions found.</li>'; return; }
-        querySnapshot.forEach(doc => {
-            const sessionData = doc.data();
-            const li = document.createElement('li');
-            li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp.seconds * 1000).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
-            li.querySelector('div').addEventListener('click', () => loadSpecificSession(doc.id));
-            li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deletePrivateSession(doc.id, sessionData.sessionName); });
-            sessionList.appendChild(li);
-        });
-    } catch (error) { console.error("Error fetching sessions:", error); sessionList.innerHTML = '<li>Could not load sessions.</li>'; }
-}
-
-export async function deletePrivateSession(sessionId, sessionName) {
-    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
-        try {
-            await deleteDoc(doc(db, "users", state.currentUser.uid, "privateSessions", sessionId));
-            alert("Session deleted.");
-            populateSessionList();
-        } catch (error) { console.error("Error deleting session:", error); alert("Failed to delete session."); }
-    }
-}
-
-export async function loadSpecificSession(sessionId) {
-    try {
-        const docSnap = await getDoc(doc(db, "users", state.currentUser.uid, "privateSessions", sessionId));
-        if (docSnap.exists()) {
-            map.clearCurrentSession();
-            const sessionData = docSnap.data();
-            map.displaySessionData({ ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) });
-            alert(`Session "${sessionData.sessionName}" loaded!`);
-            document.getElementById('sessionsModal').style.display = 'none';
-            document.getElementById('centerOnRouteBtn').classList.remove('disabled');
-        }
-    } catch (error) { console.error("Error loading specific session:", error); alert("Failed to load session."); }
-}
-
-export function exportGeoJSON() {
-    const now = new Date();
-    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
-    const fileName = `litter_bugs_data_${timestamp}.geojson`;
-    const pinFeatures = state.photoPins.map(pin => ({ type: 'Feature', geometry: { type: 'Point', coordinates: pin.coords }, properties: { title: pin.title, image_url: pin.imageURL || 'local_data', category: pin.category } }));
-    const routeFeature = { type: 'Feature', geometry: { type: 'LineString', coordinates: state.routeCoordinates }, properties: {} };
-    const geojson = { type: 'FeatureCollection', features: [...pinFeatures, routeFeature] };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojson, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", fileName);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-    document.getElementById('dataModal').style.display = 'none';
-}
-
 export async function populatePublishedRoutesList() {
     const publishedRoutesList = document.getElementById('publishedRoutesList');
     publishedRoutesList.innerHTML = '<li>Loading your publications...</li>';
@@ -221,8 +140,8 @@ export async function deletePublishedRoute(routeId) {
             alert("Route deleted from the community map.");
             populatePublishedRoutesList();
             if (state.isCommunityViewOn) {
-                map.clearCommunityRoutes();
-                map.fetchAndDisplayCommunityRoutes();
+                clearCommunityRoutes();
+                fetchAndDisplayCommunityRoutes();
             }
         } catch (error) { console.error("Error deleting published route:", error); alert("Failed to delete route."); }
     }
