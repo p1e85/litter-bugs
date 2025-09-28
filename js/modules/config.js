@@ -1,11 +1,8 @@
 // --- Configuration Module ---
-// This file stores static configuration data for the application,
-// making it easy to manage keys, settings, and rulebooks in one place.
+// This file stores static configuration data for the application.
+// Other modules will import these constants as needed.
 
-/**
- * This object contains the project's unique Firebase configuration keys.
- * It's used to connect the web app to the correct Firebase project in the cloud.
- */
+// This object contains your project's unique Firebase configuration keys.
 export const firebaseConfig = {
     apiKey: "AIzaSyCE1b6VtJjUs0O5YvyLjeslxuHC8UlgJUM",
     authDomain: "garbagepathv2.firebaseapp.com",
@@ -16,21 +13,13 @@ export const firebaseConfig = {
     measurementId: "G-SM46WXV0CN"
 };
 
-/**
- * The map zoom level at which the app switches from showing simple dots
- * for photo pins to showing the full photo thumbnail icons.
- */
+// The map zoom level at which we switch from dots to photo icons.
 export const ZOOM_THRESHOLD = 14;
 
-/**
- * A simple blocklist of words to prevent from being used in meetup titles
- * and descriptions. This provides a basic, client-side first line of defense.
- */
-export const profanityList = ["word1", "word2", "word3"]; // Add inappropriate words here
+// A simple blocklist of words for the client-side profanity filter.
+export const profanityList = ["word1", "word2", "word3"];
 
-/**
- * An array of different Mapbox map styles the user can cycle through.
- */
+// An array of different map styles the user can cycle through.
 export const mapStyles = [
     { name: 'Streets', url: 'mapbox://styles/mapbox/streets-v12' },
     { name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
@@ -39,10 +28,7 @@ export const mapStyles = [
     { name: 'Satellite', url: 'mapbox://styles/mapbox/satellite-streets-v12' }
 ];
 
-/**
- * This object acts as the official "Rulebook" for all achievements/badges in the app.
- * The backend Cloud Function uses this data to know what badges to award.
- */
+// This object acts as our "Rulebook" for all achievements/badges in the app.
 export const allBadges = {
     first_find: { name: 'First Find', icon: '🗑️', description: 'Pinned your very first piece of litter.' },
     collector: { name: 'Collector', icon: '🛍️', description: 'Pinned a total of 50 items.' },
