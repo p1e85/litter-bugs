@@ -6,10 +6,13 @@
 import { getFirestore, doc, getDoc, collection, query, orderBy, limit, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import * as state from './state.js';
 import { allBadges, profanityList } from './config.js';
-import { calculateRouteDistance } from './map.js';
+import { calculateRouteDistance, updateUserPinsSource } from './map.js';
 
 const db = getFirestore();
 
+/**
+ * Updates the UI of the authentication modal to switch between "Log In" and "Sign Up" modes.
+ */
 export function updateAuthModalUI() {
     const authForm = document.getElementById('authForm');
     const authTitle = document.getElementById('authTitle');
@@ -44,6 +47,10 @@ export function updateAuthModalUI() {
         !(isEmailValid && isPasswordValid);
 }
 
+/**
+ * Fetches and displays another user's public profile in a modal.
+ * @param {string} userId The ID of the user whose profile to show.
+ */
 export async function showPublicProfile(userId) {
     if (!userId) return;
     try {
@@ -111,6 +118,10 @@ export async function showPublicProfile(userId) {
     }
 }
 
+/**
+ * Displays the "Achievement Unlocked!" modal for a newly earned badge.
+ * @param {string} badgeKey The key of the badge from the `allBadges` object.
+ */
 export function showAchievementPopup(badgeKey) {
     const badge = allBadges[badgeKey];
     if (!badge) return;
@@ -127,6 +138,10 @@ export function showAchievementPopup(badgeKey) {
     achievementModal.style.display = 'flex';
 }
 
+/**
+ * Opens the "Schedule a Meetup" modal and pre-fills the location name.
+ * @param {string} poiName The name of the Point of Interest.
+ */
 export function openMeetupModal(poiName) {
     if (!state.currentUser) {
         alert("Please log in to schedule a meetup.");
@@ -138,6 +153,10 @@ export function openMeetupModal(poiName) {
     validateMeetupForm();
 }
 
+/**
+ * Opens the "View Meetups" modal and fetches the list of meetups for that location.
+ * @param {string} poiName The name of the Point of Interest.
+ */
 export function openViewMeetupsModal(poiName) {
     document.getElementById('viewMeetupsLocationName').textContent = poiName;
     const meetupsList = document.getElementById('meetupsList');
@@ -169,6 +188,9 @@ export function openViewMeetupsModal(poiName) {
     });
 }
 
+/**
+ * Validates the meetup form to enable/disable the "Create" button.
+ */
 export function validateMeetupForm() {
     const title = document.getElementById('meetupTitleInput').value.trim();
     const description = document.getElementById('meetupDescriptionInput').value.trim();
@@ -187,6 +209,9 @@ export function validateMeetupForm() {
     createBtn.disabled = !(title && description && safetyChecked && !hasProfanity);
 }
 
+/**
+ * Calculates and displays the post-cleanup summary modal with stats.
+ */
 export function showCleanupSummary() {
     if (!state.trackingStartTime) return;
     const durationMs = new Date() - state.trackingStartTime;
@@ -202,6 +227,9 @@ export function showCleanupSummary() {
     state.setTrackingStartTime(null);
 }
 
+/**
+ * Gathers stats from the summary modal and uses the Web Share API.
+ */
 export async function shareCleanupResults() {
     const distance = document.getElementById('summaryDistance').textContent;
     const pins = document.getElementById('summaryPins').textContent;
@@ -229,6 +257,9 @@ export async function shareCleanupResults() {
     }
 }
 
+/**
+ * Fetches the top 10 users from Firestore and displays them in the leaderboard modal.
+ */
 export async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
     if (!leaderboardList) return;
@@ -269,6 +300,9 @@ export async function fetchAndDisplayLeaderboard(metric) {
     }
 }
 
+/**
+ * Fetches and displays the current user's personal lifetime stats in the leaderboard modal.
+ */
 export async function fetchAndDisplayMyStats() {
     const myStatsContainer = document.getElementById('myStatsContainer');
     myStatsContainer.innerHTML = '';
@@ -335,5 +369,57 @@ export async function fetchAndDisplayMyStats() {
         console.error("Error fetching your stats:", error);
         myStatsContainer.innerHTML = '<p class="login-prompt">Could not load your stats.</p>';
     }
+}
+
+/**
+ * Creates the HTML content for a photo pin's pop-up, including edit/delete forms.
+ * @param {object} pinInfo The data for the pin.
+ * @param {string} type 'user' or 'community'.
+ * @param {object} routeInfo Additional info for community pins.
+ * @returns {mapboxgl.Popup} The configured but not-yet-added popup object.
+ */
+export function createPinPopup(pinInfo, type, routeInfo = {}) {
+    let popupHTML;
+    if (type === 'user') {
+        const categories = ['Plastic', 'Glass', 'Metal', 'Paper', 'Other'];
+        const optionsHTML = categories.map(cat => `<option value="${cat}" ${pinInfo.category === cat ? 'selected' : ''}>${cat}</option>`).join('');
+        popupHTML = `<div><img src="${pinInfo.imageURL || pinInfo.image}" alt="User photo" style="width:100%; height:auto; border-radius: 4px;"/><div class="pin-popup-form"><input type="text" id="title-${pinInfo.id}" value="${pinInfo.title}" placeholder="Enter a title"><select id="category-${pinInfo.id}">${optionsHTML}</select><div style="display: flex; justify-content: space-between; gap: 10px;"><button id="update-${pinInfo.id}" style="flex-grow: 1;">Update</button><button id="delete-${pinInfo.id}" style="background-color: #dc3545;">Delete</button></div></div></div>`;
+    } else {
+        popupHTML = `<div><img src="${pinInfo.imageURL}" alt="Community photo" style="width:100%; border-radius: 4px;"/><p style="margin: 5px 0 0;"><strong>${pinInfo.title}</strong></p><p style="margin: 5px 0 0; font-style: italic; color: #555;">Category: ${pinInfo.category || 'Other'}</p><small>By: <a href="#" class="profile-link" data-userid="${routeInfo.userId}">${routeInfo.username || 'A user'}</a></small></div>`;
+    }
+    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(popupHTML);
+    popup.on('open', () => {
+        if (type === 'user') {
+            document.getElementById(`update-${pinInfo.id}`)?.addEventListener('click', () => {
+                const pin = state.photoPins.find(p => p.id === pinInfo.id);
+                if (pin) {
+                    pin.title = document.getElementById(`title-${pinInfo.id}`).value;
+                    pin.category = document.getElementById(`category-${pinInfo.id}`).value;
+                }
+                popup.remove(); alert("Pin updated! Remember to save your session.");
+            });
+            document.getElementById(`delete-${pinInfo.id}`)?.addEventListener('click', () => {
+                if (confirm("Are you sure?")) {
+                    state.setPhotoPins(state.photoPins.filter(p => p.id !== pinInfo.id));
+                    const markerToRemove = state.userMarkers.find(m => {
+                        const lngLat = m.getLngLat();
+                        return lngLat.lng === pinInfo.coords[0] && lngLat.lat === pinInfo.coords[1];
+                    });
+                    if (markerToRemove) {
+                        markerToRemove.remove();
+                        state.setUserMarkers(state.userMarkers.filter(m => m !== markerToRemove));
+                    }
+                    updateUserPinsSource();
+                    popup.remove();
+                }
+            });
+        } else {
+            document.querySelector(`.profile-link[data-userid="${routeInfo.userId}"]`)?.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPublicProfile(routeInfo.userId);
+            });
+        }
+    });
+    return popup;
 }
 
