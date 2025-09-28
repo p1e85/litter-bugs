@@ -1,35 +1,15 @@
 // --- Main Application Entry Point ---
-// This file is the new "brain" of the application. It imports functionality
-// from the specialized modules and connects them to the HTML elements.
-
-// --- Firebase SDK Setup ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-// --- Module Imports ---
 import { firebaseConfig } from './modules/config.js';
 import * as state from './modules/state.js';
 import { handleSignUp, handleLogIn } from './modules/auth.js';
-import {
-    updateAuthModalUI, showPublicProfile, showAchievementPopup,
-    fetchAndDisplayLeaderboard, fetchAndDisplayMyStats,
-    openMeetupModal, validateMeetupForm, openViewMeetupsModal
-} from './modules/ui.js';
-import {
-    initializeMap, changeMapStyle, toggleMarkerVisibility, findMe,
-    toggleTracking, startTracking, handlePhoto, centerOnRoute,
-    setupPoiClickListeners
-} from './modules/map.js';
-import {
-    checkAndClearOldData, publishRoute, saveSession, loadSession,
-    exportGeoJSON, populatePublishedRoutesList,
-    loadProfileForEditing, saveProfile, handleAccountDeletion,
-    handleMeetupSubmit
-} from './modules/data.js';
+import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm } from './modules/ui.js';
+import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute } from './modules/map.js';
+import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit } from './modules/data.js';
 
-// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 const auth = getAuth();
@@ -39,12 +19,8 @@ state.setAuth(auth);
 state.setStorage(storage);
 console.log("Firebase Initialized!");
 
-// --- Main App Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    
     checkAndClearOldData();
-
-    // --- Get All Element References ---
     const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
@@ -115,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuModal = document.getElementById('menuModal');
     const menuModalCloseBtn = menuModal.querySelector('.close-btn');
 
-    // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
         state.setCurrentUser(user);
         const userStatus = document.getElementById('userStatus');
@@ -144,6 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     username = defaultUsername;
                 }
                 if (userEmailSpan) userEmailSpan.textContent = `Logged in as: ${username}`;
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists() && userDocSnap.data().totalPins === undefined) {
+                    await updateDoc(userDocRef, { totalPins: 0, totalDistance: 0, totalRoutes: 0 });
+                }
             } catch (error) {
                 console.error("Error fetching or updating user profile:", error);
             }
@@ -162,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Initial UI Setup ---
     if (sessionStorage.getItem('termsAccepted')) {
         termsModal.style.display = 'none';
         document.getElementById('userStatus').style.display = 'flex';
@@ -170,10 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
         termsModal.style.display = 'flex';
     }
 
-    // --- Initialize Map ---
     initializeMap('map');
 
-    // --- Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
@@ -220,8 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
     findMeBtn.addEventListener('click', findMe);
     trackBtn.addEventListener('click', toggleTracking);
     pictureBtn.addEventListener('click', () => cameraInput.click());
-    cameraInput.addEventListener('change', handlePhoto);
+    cameraInput.addEventListener('change', (e) => handlePhoto(e));
     dataBtn.addEventListener('click', () => {
+        menuModal.style.display = 'none';
         const centerOnRouteBtn = document.getElementById('centerOnRouteBtn');
         const hasRoute = state.routeCoordinates.length > 0 || state.photoPins.length > 0;
         centerOnRouteBtn.classList.toggle('disabled', !hasRoute);
