@@ -1,4 +1,3 @@
-// --- Firebase SDK Setup ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -10,8 +9,8 @@ import {
     onAuthStateChanged,
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
-// --- Litter Bugs V2 Firebase Config ---
 const firebaseConfig = {
   apiKey: "AIzaSyCE1b6VtJjUs0O5YvyLjeslxuHC8UlgJUM",
   authDomain: "garbagepathv2.firebaseapp.com",
@@ -22,14 +21,12 @@ const firebaseConfig = {
   measurementId: "G-SM46WXV0CN"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 const auth = getAuth();
 const storage = getStorage();
 console.log("Firebase Initialized!");
 
-// --- Global State ---
 let currentUser = null;
 let trackingWatcher = null;
 let routeCoordinates = [];
@@ -70,12 +67,10 @@ const allBadges = {
 };
 
 
-// --- Main App Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     
     checkAndClearOldData();
 
-    // --- Element References ---
     const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
@@ -142,8 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewMeetupsModalCloseBtn = viewMeetupsModal.querySelector('.close-btn');
     const shareBtn = document.getElementById('shareBtn');
     const leaderboardList = document.getElementById('leaderboardList');
+    const menuBtn = document.getElementById('menuBtn');
+    const menuModal = document.getElementById('menuModal');
+    const menuModalCloseBtn = menuModal.querySelector('.close-btn');
 
-    // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
         const userStatus = document.getElementById('userStatus');
         const loggedInContent = document.getElementById('loggedInContent');
@@ -202,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Initial UI Setup ---
     if (sessionStorage.getItem('termsAccepted')) {
         termsModal.style.display = 'none';
         document.getElementById('userStatus').style.display = 'flex';
@@ -210,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
         termsModal.style.display = 'flex';
     }
 
-    // --- Mapbox Setup ---
     mapboxgl.accessToken = 'pk.eyJ1IjoicDFjcmVhdGlvbnMiLCJhIjoiY2p6ajZvejJmMDZhaTNkcWpiN294dm12eCJ9.8ckNT6kfuJry7K7GAeIuxw';
     map = new mapboxgl.Map({
         container: 'map',
@@ -225,9 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
         marker: false,
         placeholder: 'Search for a place'
     });
-    map.addControl(geocoder, 'top-left');
+    document.getElementById('geocoder-container').appendChild(geocoder.onAdd(map));
 
-    // --- Map Event Listeners ---
     map.on('load', () => {
         initializeMapLayers();
         setupPoiClickListeners();
@@ -237,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleMarkerVisibility();
     });
 
-    // --- General Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
@@ -254,10 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
     usernameInput.addEventListener('input', validateSignUpForm);
     ageCheckbox.addEventListener('change', validateSignUpForm);
     infoBtn.addEventListener('click', () => infoModal.style.display = 'flex');
-
-event listeners for the new Menu modal
-    menuBtn.addEventListener('click', () => menuModal.style.display = 'flex');
-    menuModalCloseBtn.addEventListener('click', () => menuModal.style.display = 'none');
     infoModalCloseBtn.addEventListener('click', () => infoModal.style.display = 'none');
     viewTermsLink.addEventListener('click', (e) => {
         e.preventDefault();
@@ -271,11 +260,7 @@ event listeners for the new Menu modal
         document.getElementById('userStatus').style.display = 'flex';
         if (!currentUser) authModal.style.display = 'flex';
     });
-    
-    loginSignupBtn.addEventListener('click', () => {
-        authModal.style.display = 'flex';
-    });
-    
+    loginSignupBtn.addEventListener('click', () => authModal.style.display = 'flex');
     document.getElementById('authModal').addEventListener('click', (e) => {
         if (e.target.id === 'switchAuthModeLink') {
             e.preventDefault();
@@ -283,7 +268,6 @@ event listeners for the new Menu modal
             updateAuthModalUI();
         }
     });
-    
     authActionBtn.addEventListener('click', async () => {
         if (isSignUpMode) await handleSignUp();
         else await handleLogIn();
@@ -294,7 +278,11 @@ event listeners for the new Menu modal
     trackBtn.addEventListener('click', toggleTracking);
     pictureBtn.addEventListener('click', () => cameraInput.click());
     cameraInput.addEventListener('change', handlePhoto);
-    dataBtn.addEventListener('click', () => dataModal.style.display = 'flex');
+    dataBtn.addEventListener('click', () => {
+        const centerOnRouteBtn = document.getElementById('centerOnRouteBtn');
+        centerOnRouteBtn.disabled = routeCoordinates.length === 0 && photoPins.length === 0;
+        dataModal.style.display = 'flex';
+    });
     closeDataModalBtn.addEventListener('click', () => dataModal.style.display = 'none');
     sessionsModalCloseBtn.addEventListener('click', () => sessionsModal.style.display = 'none');
     localSessionsModalCloseBtn.addEventListener('click', () => localSessionsModal.style.display = 'none');
@@ -334,7 +322,6 @@ event listeners for the new Menu modal
             }
         });
     });
-    
     leaderboardList.addEventListener('click', (e) => {
         if (e.target && e.target.classList.contains('leaderboard-profile-link')) {
             e.preventDefault();
@@ -345,14 +332,12 @@ event listeners for the new Menu modal
             }
         }
     });
-    
     window.addEventListener('click', (event) => {
-        const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal, meetupModal, viewMeetupsModal];
+        const modals = [dataModal, sessionsModal, localSessionsModal, infoModal, authModal, publishedRoutesModal, profileModal, publicProfileModal, safetyModal, summaryModal, leaderboardModal, achievementModal, meetupModal, viewMeetupsModal, menuModal];
         if (modals.includes(event.target)) {
             modals.forEach(m => m.style.display = 'none');
         }
     });
-    
     achievementOkBtn.addEventListener('click', () => achievementModal.style.display = 'none');
     meetupModalCloseBtn.addEventListener('click', () => meetupModal.style.display = 'none');
     viewMeetupsModalCloseBtn.addEventListener('click', () => viewMeetupsModal.style.display = 'none');
@@ -384,10 +369,11 @@ event listeners for the new Menu modal
     deleteAccountBtn.addEventListener('click', handleAccountDeletion);
     changeStyleBtn.addEventListener('click', changeMapStyle);
     centerOnRouteBtn.addEventListener('click', centerOnRoute);
+    menuBtn.addEventListener('click', () => menuModal.style.display = 'flex');
+    menuModalCloseBtn.addEventListener('click', () => menuModal.style.display = 'none');
 });
 
-// --- Functions ---
-// (All functions are now defined globally)
+
 function initializeMapLayers() {
     if (!map.getSource('user-route')) map.addSource('user-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
     if (!map.getLayer('user-route')) map.addLayer({ id: 'user-route', type: 'line', source: 'user-route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#007bff', 'line-width': 5 } });
@@ -1063,16 +1049,12 @@ function showCleanupSummary() {
     const durationMs = new Date() - trackingStartTime;
     const distanceMeters = calculateRouteDistance(routeCoordinates);
     const pinsCount = photoPins.length;
-
     const distanceMiles = (distanceMeters * 0.000621371).toFixed(2);
-
     const minutes = Math.floor(durationMs / 60000);
     const seconds = ((durationMs % 60000) / 1000).toFixed(0);
-    
     document.getElementById('summaryDistance').textContent = `${distanceMiles} mi`;
     document.getElementById('summaryPins').textContent = pinsCount;
     document.getElementById('summaryDuration').textContent = `${minutes}m ${seconds}s`;
-    
     document.getElementById('summaryModal').style.display = 'flex';
     trackingStartTime = null;
 }
@@ -1083,7 +1065,7 @@ function calculateRouteDistance(coordinates) {
     for (let i = 0; i < coordinates.length - 1; i++) {
         const p1 = { lat: coordinates[i][1], lng: coordinates[i][0] };
         const p2 = { lat: coordinates[i+1][1], lng: coordinates[i+1][0] };
-        const R = 6371e3; // Radius of the Earth in meters
+        const R = 6371e3;
         const φ1 = p1.lat * Math.PI / 180;
         const φ2 = p2.lat * Math.PI / 180;
         const Δφ = (p2.lat - p1.lat) * Math.PI / 180;
@@ -1094,6 +1076,7 @@ function calculateRouteDistance(coordinates) {
     }
     return totalDistance;
 }
+
 async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
     if (!leaderboardList) return;
@@ -1116,8 +1099,8 @@ async function fetchAndDisplayLeaderboard(metric) {
             li.dataset.userid = doc.id;
             
             const score = metric === 'totalDistance'
-                ? `${(profileData.totalDistance * 0.000621371).toFixed(2)} mi`
-                : profileData.totalPins;
+                ? `${((profileData.totalDistance || 0) * 0.000621371).toFixed(2)} mi`
+                : (profileData.totalPins || 0);
 
             li.innerHTML = `
                 <span class="leaderboard-rank">${rank}.</span>
