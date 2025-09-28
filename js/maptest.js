@@ -9,7 +9,6 @@ import {
     onAuthStateChanged,
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCE1b6VtJjUs0O5YvyLjeslxuHC8UlgJUM",
@@ -280,7 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cameraInput.addEventListener('change', handlePhoto);
     dataBtn.addEventListener('click', () => {
         const centerOnRouteBtn = document.getElementById('centerOnRouteBtn');
-        centerOnRouteBtn.disabled = routeCoordinates.length === 0 && photoPins.length === 0;
+        const hasRoute = routeCoordinates.length > 0 || photoPins.length > 0;
+        centerOnRouteBtn.classList.toggle('disabled', !hasRoute);
         dataModal.style.display = 'flex';
     });
     closeDataModalBtn.addEventListener('click', () => dataModal.style.display = 'none');
@@ -368,11 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
     saveProfileBtn.addEventListener('click', saveProfile);
     deleteAccountBtn.addEventListener('click', handleAccountDeletion);
     changeStyleBtn.addEventListener('click', changeMapStyle);
-    centerOnRouteBtn.addEventListener('click', centerOnRoute);
+    centerOnRouteBtn.addEventListener('click', () => {
+        if (centerOnRouteBtn.classList.contains('disabled')) {
+            alert("Please load a route first to use this feature.");
+        } else {
+            centerOnRoute();
+        }
+    });
     menuBtn.addEventListener('click', () => menuModal.style.display = 'flex');
     menuModalCloseBtn.addEventListener('click', () => menuModal.style.display = 'none');
 });
-
 
 function initializeMapLayers() {
     if (!map.getSource('user-route')) map.addSource('user-route', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
@@ -793,7 +798,7 @@ function loadSpecificLocalSession(sessionIndex) {
         displaySessionData(convertedData);
         alert(`Session "${sessionData.sessionName}" loaded!`);
         document.getElementById('localSessionsModal').style.display = 'none';
-        document.getElementById('centerOnRouteBtn').disabled = false;
+        document.getElementById('centerOnRouteBtn').classList.remove('disabled');
     }
 }
 
@@ -835,7 +840,7 @@ async function loadSpecificSession(sessionId) {
             displaySessionData({ ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) });
             alert(`Session "${sessionData.sessionName}" loaded!`);
             document.getElementById('sessionsModal').style.display = 'none';
-            document.getElementById('centerOnRouteBtn').disabled = false;
+            document.getElementById('centerOnRouteBtn').classList.remove('disabled');
         }
     } catch (error) { console.error("Error loading specific session:", error); alert("Failed to load session."); }
 }
@@ -847,7 +852,7 @@ function clearCurrentSession() {
     routeCoordinates = [];
     updateUserPinsSource();
     if (map && map.getSource('user-route')) map.getSource('user-route').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } });
-    document.getElementById('centerOnRouteBtn').disabled = true;
+    document.getElementById('centerOnRouteBtn').classList.add('disabled');
 }
 
 function displaySessionData(data) {
@@ -1076,7 +1081,6 @@ function calculateRouteDistance(coordinates) {
     }
     return totalDistance;
 }
-
 async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
     if (!leaderboardList) return;
