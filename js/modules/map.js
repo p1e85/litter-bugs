@@ -5,23 +5,22 @@
 import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import * as state from './state.js';
 import { mapStyles, ZOOM_THRESHOLD } from './config.js';
-import { createPinPopup, openMeetupModal, openViewMeetupsModal } from './ui.js';
+import { createPinPopup, openMeetupModal, openViewMeetupsModal, showCleanupSummary } from './ui.js';
 import { convertRouteFromFirestore, convertPinsFromFirestore } from './data.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const db = getFirestore();
+const storage = getStorage();
 let currentStyleIndex = 0;
 
-/**
- * Initializes the main Mapbox map object and adds the geocoder search bar.
- * @param {string} containerId The ID of the HTML element where the map should be rendered.
- */
 export function initializeMap(containerId) {
     mapboxgl.accessToken = 'pk.eyJ1IjoicDFjcmVhdGlvbnMiLCJhIjoiY2p6ajZvejJmMDZhaTNkcWpiN294dm12eCJ9.8ckNT6kfuJry7K7GAeIuxw';
     const mapInstance = new mapboxgl.Map({
         container: containerId,
         style: mapStyles[currentStyleIndex].url,
         center: [-87.6298, 41.8781],
-        zoom: 10
+        zoom: 10,
+        attributionControl: false
     });
     state.setMap(mapInstance);
 
@@ -43,9 +42,6 @@ export function initializeMap(containerId) {
     });
 }
 
-/**
- * Sets up the initial sources and layers for the map (user route, location dot, pin dots).
- */
 export function initializeMapLayers() {
     const map = state.map;
     if (!map) return;
@@ -60,9 +56,6 @@ export function initializeMapLayers() {
     if (!map.getLayer('community-pins-dots')) map.addLayer({ id: 'community-pins-dots', type: 'circle', source: 'community-pins-source', maxzoom: ZOOM_THRESHOLD, paint: { 'circle-radius': 6, 'circle-color': '#28a745', 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
 }
 
-/**
- * Changes the map's visual style and re-adds all necessary layers and markers.
- */
 export function changeMapStyle() {
     currentStyleIndex = (currentStyleIndex + 1) % mapStyles.length;
     state.map.setStyle(mapStyles[currentStyleIndex].url);
@@ -76,18 +69,12 @@ export function changeMapStyle() {
     });
 }
 
-/**
- * Shows or hides the HTML photo markers based on the map's zoom level.
- */
 export function toggleMarkerVisibility() {
     const display = state.map.getZoom() >= ZOOM_THRESHOLD ? 'block' : 'none';
     state.userMarkers.forEach(marker => marker.getElement().style.display = display);
     state.communityMarkers.forEach(marker => marker.getElement().style.display = display);
 }
 
-/**
- * Uses the browser's geolocation API to find the user's current location and center the map there.
- */
 export function findMe() {
     if (state.findMeMarker) state.findMeMarker.remove();
     navigator.geolocation.getCurrentPosition(position => {
@@ -98,9 +85,6 @@ export function findMe() {
     }, () => alert("Could not get your location."), { enableHighAccuracy: true });
 }
 
-/**
- * Toggles the GPS tracking on and off.
- */
 export function toggleTracking() {
     const trackBtn = document.getElementById('trackBtn');
     if (state.trackingWatcher) {
@@ -109,15 +93,12 @@ export function toggleTracking() {
         trackBtn.textContent = '🛰️ Start Tracking';
         trackBtn.classList.remove('tracking');
         if (state.map.getSource('user-location-point')) state.map.getSource('user-location-point').setData({ type: 'Feature', geometry: { type: 'Point', coordinates: [] } });
-        ui.showCleanupSummary();
+        showCleanupSummary();
     } else { document.getElementById('safetyModal').style.display = 'flex'; }
 }
 
-/**
- * Starts a new tracking session.
- */
 export function startTracking() {
-    state.clearCurrentSession();
+    clearCurrentSession();
     const trackBtn = document.getElementById('trackBtn');
     state.setTrackingStartTime(new Date());
     navigator.geolocation.getCurrentPosition(pos => state.map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 16 }));
@@ -132,9 +113,6 @@ export function startTracking() {
     trackBtn.classList.add('tracking');
 }
 
-/**
- * Zooms the map to fit the currently loaded route and its pins.
- */
 export function centerOnRoute() {
     if (state.routeCoordinates.length < 1 && state.photoPins.length < 1) {
         alert("No route is currently loaded to center on.");
@@ -149,9 +127,6 @@ export function centerOnRoute() {
     });
 }
 
-/**
- * Sets up click listeners for Mapbox's default Points of Interest layers.
- */
 export function setupPoiClickListeners() {
     const poiLayers = [ 'poi-label', 'transit-label', 'airport-label', 'natural-point-label', 'natural-line-label', 'water-point-label', 'water-line-label', 'waterway-label' ];
     poiLayers.forEach(layerId => {
@@ -187,10 +162,21 @@ export function setupPoiClickListeners() {
     });
 }
 
-/**
- * Fetches all published routes from Firestore and displays them on the map.
- */
-async function fetchAndDisplayCommunityRoutes() {
+export async function toggleCommunityView() {
+    state.setIsCommunityViewOn(!state.isCommunityViewOn);
+    const communityBtn = document.getElementById('communityBtn');
+    if (state.isCommunityViewOn) {
+        communityBtn.textContent = '🌎 Community View: ON';
+        communityBtn.classList.remove('off');
+        await fetchAndDisplayCommunityRoutes();
+    } else {
+        communityBtn.textContent = '🌎 Community View: OFF';
+        communityBtn.classList.add('off');
+        clearCommunityRoutes();
+    }
+}
+
+export async function fetchAndDisplayCommunityRoutes() {
     try {
         const q = query(collection(db, "publishedRoutes"), orderBy("timestamp", "desc"));
         const querySnapshot = await getDocs(q);
@@ -219,10 +205,7 @@ async function fetchAndDisplayCommunityRoutes() {
     } catch (error) { console.error("Error fetching community routes:", error); alert("Could not load community data."); }
 }
 
-/**
- * Removes all community-related layers and markers from the map.
- */
-function clearCommunityRoutes() {
+export function clearCommunityRoutes() {
     state.communityMarkers.forEach(marker => marker.remove());
     state.setCommunityMarkers([]);
     state.communityLayers.forEach(layer => {
@@ -231,5 +214,115 @@ function clearCommunityRoutes() {
     });
     if (state.map.getSource('community-pins-source')) state.map.getSource('community-pins-source').setData({ type: 'FeatureCollection', features: [] });
     state.setCommunityLayers([]);
+}
+
+export function calculateRouteDistance(coordinates) {
+    let totalDistance = 0;
+    if (coordinates.length < 2) return 0;
+    for (let i = 0; i < coordinates.length - 1; i++) {
+        const p1 = { lat: coordinates[i][1], lng: coordinates[i][0] };
+        const p2 = { lat: coordinates[i+1][1], lng: coordinates[i+1][0] };
+        const R = 6371e3;
+        const φ1 = p1.lat * Math.PI / 180;
+        const φ2 = p2.lat * Math.PI / 180;
+        const Δφ = (p2.lat - p1.lat) * Math.PI / 180;
+        const Δλ = (p2.lng - p1.lng) * Math.PI / 180;
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        totalDistance += R * c;
+    }
+    return totalDistance;
+}
+
+export function clearCurrentSession() {
+    state.userMarkers.forEach(marker => marker.remove());
+    state.setUserMarkers([]);
+    state.setPhotoPins([]);
+    state.setRouteCoordinates([]);
+    updateUserPinsSource();
+    if (state.map && state.map.getSource('user-route')) state.map.getSource('user-route').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } });
+    document.getElementById('centerOnRouteBtn').classList.add('disabled');
+}
+
+export function displaySessionData(data) {
+    state.setPhotoPins(data.pins || []);
+    state.setRouteCoordinates(data.route || []);
+    state.photoPins.forEach(pin => createAndAddMarker(pin, 'user'));
+    updateUserPinsSource();
+    if(state.map && state.map.getSource('user-route')) state.map.getSource('user-route').setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: state.routeCoordinates } });
+}
+
+export function updateUserPinsSource() {
+    const features = state.photoPins.map(pin => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: pin.coords },
+        properties: {}
+    }));
+    if (state.map && state.map.getSource('user-pins-source')) {
+        state.map.getSource('user-pins-source').setData({ type: 'FeatureCollection', features });
+    }
+}
+
+export function createAndAddMarker(pinInfo, type, routeInfo = {}) {
+    const el = document.createElement('div');
+    el.className = 'photo-marker';
+    el.style.backgroundImage = `url(${pinInfo.imageURL || pinInfo.image})`;
+    el.style.display = state.map.getZoom() >= ZOOM_THRESHOLD ? 'block' : 'none';
+    const popup = createPinPopup(pinInfo, type, routeInfo);
+    const marker = new mapboxgl.Marker(el).setLngLat(pinInfo.coords).setPopup(popup).addTo(state.map);
+    if (type === 'user') {
+        state.userMarkers.push(marker);
+    } else {
+        el.style.borderColor = '#28a745';
+        state.communityMarkers.push(marker);
+    }
+    return marker;
+}
+
+export async function handlePhoto(event) {
+    const pictureBtn = document.getElementById('pictureBtn');
+    const originalButtonText = pictureBtn.innerHTML;
+    if (!event.target.files || event.target.files.length === 0) { event.target.value = ''; return; }
+    const file = event.target.files[0];
+    pictureBtn.innerHTML = 'Processing...'; pictureBtn.disabled = true;
+    const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
+    let processedFile;
+    try {
+        processedFile = await imageCompression(file, options);
+    } catch (error) {
+        console.error("Image compression error:", error); alert("Error processing image.");
+        pictureBtn.innerHTML = originalButtonText; pictureBtn.disabled = false; event.target.value = ''; return;
+    }
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const coords = [position.coords.longitude, position.coords.latitude];
+        const defaultTitle = `Pin ${state.photoPins.length + 1}`;
+        if (!state.currentUser) {
+            const reader = new FileReader();
+            reader.readAsDataURL(processedFile);
+            reader.onload = e => {
+                const pinInfo = { id: `pin-${Date.now()}`, coords, image: e.target.result, title: defaultTitle, category: 'Other' };
+                state.photoPins.push(pinInfo);
+                const newMarker = createAndAddMarker(pinInfo, 'user');
+                newMarker.togglePopup();
+                updateUserPinsSource();
+            };
+        } else {
+            try {
+                const timestamp = Date.now();
+                const storageRef = ref(storage, `photos/${state.currentUser.uid}/${timestamp}-${processedFile.name}`);
+                const snapshot = await uploadBytes(storageRef, processedFile);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                const pinInfo = { id: `pin-${timestamp}`, coords, imageURL: downloadURL, title: defaultTitle, category: 'Other' };
+                state.photoPins.push(pinInfo);
+                const newMarker = createAndAddMarker(pinInfo, 'user');
+                newMarker.togglePopup();
+                updateUserPinsSource();
+            } catch (error) { console.error("Error uploading photo:", error); alert("Photo upload failed."); }
+        }
+        pictureBtn.innerHTML = originalButtonText; pictureBtn.disabled = false; event.target.value = '';
+    }, () => {
+        alert("Could not get location. Photo was not pinned.");
+        pictureBtn.innerHTML = originalButtonText; pictureBtn.disabled = false; event.target.value = '';
+    }, { enableHighAccuracy: true });
 }
 
