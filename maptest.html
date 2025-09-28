@@ -27,13 +27,17 @@
         </div>
     </div>
 
-     <!-- Menu Modal (MODIFIED) -->
+    <!-- Menu Modal (MODIFIED) -->
     <div id="menuModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Menu</h2>
-            <!-- Buttons are now reordered -->
             <button id="infoBtn" class="modal-button">ℹ️ Info</button>
+            <!-- "Publish" button is now here -->
+            <hr>
+            <p>Publish your completed route to the public community map for everyone to see.</p>
+            <button id="publishBtn" class="modal-button publish">🚀 Publish to Community</button>
+            <hr>
             <button id="editProfileBtn" class="modal-button edit-profile">👤 Edit My Profile</button>
             <a href="https://www.buymeacoffee.com/p1skates" target="_blank" class="modal-button donate-button">
                 ☕ Support
@@ -265,14 +269,11 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <h2>Data Management</h2>
-            <!-- "Edit Profile" button was removed from here -->
+            <!-- "Publish" button was removed from here -->
             <button id="saveBtn" class="modal-button">Save Private Session</button>
             <button id="loadBtn" class="modal-button">Load Private Session</button>
-            <button id="centerOnRouteBtn" class="modal-button">🎯 Find Route</button>
+            <button id="centerOnRouteBtn" class="modal-button disabled">🎯 Find Route</button>
             <button id="managePublicationsBtn" class="modal-button manage">Manage My Publications</button>
-            <hr>
-            <p>Publish your completed route to the public community map for everyone to see.</p>
-            <button id="publishBtn" class="modal-button publish">🚀 Publish to Community</button>
             <hr>
             <p>Export your current session as a GeoJSON file.</p>
             <button id="exportBtn" class="modal-button export">Export as GeoJSON</button>
