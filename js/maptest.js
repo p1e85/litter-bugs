@@ -280,8 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dataBtn.addEventListener('click', () => {
         const centerOnRouteBtn = document.getElementById('centerOnRouteBtn');
         const hasRoute = routeCoordinates.length > 0 || photoPins.length > 0;
+        
+        menuModal.style.display = 'none'; // Close the menu modal
+        
         centerOnRouteBtn.classList.toggle('disabled', !hasRoute);
-        dataModal.style.display = 'flex';
+        dataModal.style.display = 'flex'; // Open the data modal
     });
     closeDataModalBtn.addEventListener('click', () => dataModal.style.display = 'none');
     sessionsModalCloseBtn.addEventListener('click', () => sessionsModal.style.display = 'none');
