@@ -1,12 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from './modules/config.js';
 import * as state from './modules/state.js';
 import { handleSignUp, handleLogIn } from './modules/auth.js';
-import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm, showCleanupSummary, shareCleanupResults } from './modules/ui.js';
-import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView } from './modules/map.js';
+import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm, showCleanupSummary, shareCleanupResults, createPinPopup, openMeetupModal, openViewMeetupsModal } from './modules/ui.js';
+import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView, setupPoiClickListeners } from './modules/map.js';
 import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit } from './modules/data.js';
 
 const app = initializeApp(firebaseConfig);
