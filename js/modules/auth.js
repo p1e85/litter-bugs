@@ -1,7 +1,6 @@
 // --- Authentication Module ---
 // This module handles all Firebase Authentication logic, such as creating new users and signing them in.
 
-// Import necessary functions from the Firebase SDKs.
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
