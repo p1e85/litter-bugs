@@ -4,7 +4,7 @@
 // data and what the user sees on the screen.
 
 import { doc, getDoc, collection, query, orderBy, limit, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import * as state from './config.js';
+import { state } from './config.js';
 import { allBadges, profanityList } from './config.js';
 import { calculateRouteDistance, updateUserPinsSource } from './map.js';
 import { db } from './firebase.js';
