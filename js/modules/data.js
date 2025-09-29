@@ -3,21 +3,20 @@
 // It contains functions for creating, reading,updating, and deleting data,
 // as well as helper functions for converting data formats.
 
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import * as state from './state.js';
+import { db, auth } from './firebase.js';
 import * as ui from './ui.js';
 import * as map from './map.js';
 
-const db = getFirestore();
-
 // --- Data Conversion Helper Functions ---
-export function convertRouteForFirestore(coordsArray) { if (!coordsArray) return []; return coordsArray.map(coord => ({ lng: coord[0], lat: coord[1] })); }
-export function convertRouteFromFirestore(coordsData) { if (!coordsData || coordsData.length === 0) return []; if (Array.isArray(coordsData[0])) { return coordsData; } return coordsData.map(coord => [coord.lng, coord.lat]); }
-export function convertPinsForFirestore(pinsArray) { if (!pinsArray) return []; return pinsArray.map(pin => { const newPin = { ...pin }; if (Array.isArray(newPin.coords)) { newPin.coords = { lng: newPin.coords[0], lat: newPin.coords[1] }; } return newPin; }); }
-export function convertPinsFromFirestore(pinsData) { if (!pinsData || pinsData.length === 0) return []; return pinsData.map(pin => { const newPin = { ...pin }; if (newPin.coords && typeof newPin.coords === 'object' && !Array.isArray(newPin.coords)) { newPin.coords = [newPin.coords.lng, newPin.coords.lat]; } return newPin; }); }
+function convertRouteForFirestore(coordsArray) { if (!coordsArray) return []; return coordsArray.map(coord => ({ lng: coord[0], lat: coord[1] })); }
+function convertRouteFromFirestore(coordsData) { if (!coordsData || coordsData.length === 0) return []; if (Array.isArray(coordsData[0])) { return coordsData; } return coordsData.map(coord => [coord.lng, coord.lat]); }
+function convertPinsForFirestore(pinsArray) { if (!pinsArray) return []; return pinsArray.map(pin => { const newPin = { ...pin }; if (Array.isArray(newPin.coords)) { newPin.coords = { lng: newPin.coords[0], lat: newPin.coords[1] }; } return newPin; }); }
+function convertPinsFromFirestore(pinsData) { if (!pinsData || pinsData.length === 0) return []; return pinsData.map(pin => { const newPin = { ...pin }; if (newPin.coords && typeof newPin.coords === 'object' && !Array.isArray(newPin.coords)) { newPin.coords = [newPin.coords.lng, newPin.coords.lat]; } return newPin; }); }
 
-export function checkAndClearOldData() {
+function checkAndClearOldData() {
     const guestSessionsJSON = localStorage.getItem('guestSessions');
     if (guestSessionsJSON) {
         try {
@@ -33,7 +32,7 @@ export function checkAndClearOldData() {
     }
 }
 
-export async function publishRoute() {
+async function publishRoute() {
     if (!state.currentUser) return;
     if (state.routeCoordinates.length < 2 || state.photoPins.length === 0) {
         alert("You need a tracked route and at least one photo pin to publish.");
@@ -82,7 +81,7 @@ export async function publishRoute() {
     }
 }
 
-export async function saveSession() {
+async function saveSession() {
     const dataModal = document.getElementById('dataModal');
     if (!state.currentUser) {
         const sessionName = prompt("Name this Litter Bugs session:", `Cleanup on ${new Date().toLocaleDateString()}`);
@@ -105,7 +104,7 @@ export async function saveSession() {
     }
 }
 
-export async function loadSession() {
+async function loadSession() {
     if (!state.currentUser) {
         ui.populateLocalSessionList();
         document.getElementById('localSessionsModal').style.display = 'flex';
@@ -115,17 +114,7 @@ export async function loadSession() {
     document.getElementById('sessionsModal').style.display = 'flex';
 }
 
-export function deleteLocalSession(sessionIndex, sessionName) {
-    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
-        let guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
-        guestSessions.splice(sessionIndex, 1);
-        localStorage.setItem('guestSessions', JSON.stringify(guestSessions));
-        alert("Session deleted.");
-        populateLocalSessionList();
-    }
-}
-
-export async function populatePublishedRoutesList() {
+async function populatePublishedRoutesList() {
     const publishedRoutesList = document.getElementById('publishedRoutesList');
     publishedRoutesList.innerHTML = '<li>Loading your publications...</li>';
     try {
@@ -143,7 +132,7 @@ export async function populatePublishedRoutesList() {
     } catch (error) { console.error("Error fetching published routes:", error); publishedRoutesList.innerHTML = '<li>Could not load publications.</li>'; }
 }
 
-export async function deletePublishedRoute(routeId) {
+async function deletePublishedRoute(routeId) {
     if (confirm("Are you sure you want to permanently delete this published route?")) {
         try {
             await deleteDoc(doc(db, "publishedRoutes", routeId));
@@ -157,7 +146,7 @@ export async function deletePublishedRoute(routeId) {
     }
 }
 
-export async function loadProfileForEditing() {
+async function loadProfileForEditing() {
     if (!state.currentUser) return;
     try {
         const docSnap = await getDoc(doc(db, "publicProfiles", state.currentUser.uid));
@@ -170,7 +159,7 @@ export async function loadProfileForEditing() {
     } catch (error) { console.error("Error loading profile:", error); alert("Could not load your profile for editing."); }
 }
 
-export async function saveProfile() {
+async function saveProfile() {
     if (!state.currentUser) return;
     const bio = document.getElementById('bioInput').value, location = document.getElementById('locationInput').value, coffeeLink = document.getElementById('coffeeLinkInput').value;
     try {
@@ -181,7 +170,7 @@ export async function saveProfile() {
     } catch (error) { console.error("Error saving profile:", error); alert("Error saving profile."); }
 }
 
-export async function handleAccountDeletion() {
+async function handleAccountDeletion() {
     if (!state.currentUser) return;
     if (!confirm("DANGER: Are you absolutely sure you want to permanently delete your account? This action cannot be undone.")) return;
     if (!confirm("All of your private saved sessions and public routes will be deleted forever. Are you still sure?")) return;
@@ -210,7 +199,7 @@ export async function handleAccountDeletion() {
     }
 }
 
-export async function handleMeetupSubmit() {
+async function handleMeetupSubmit() {
     if (!state.currentUser) return;
     const title = document.getElementById('meetupTitleInput').value.trim();
     const description = document.getElementById('meetupDescriptionInput').value.trim();
@@ -241,4 +230,35 @@ export async function handleMeetupSubmit() {
         alert("There was an error scheduling your meetup.");
     }
 }
+
+function exportGeoJSON() {
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
+    const fileName = `litter_bugs_data_${timestamp}.geojson`;
+    const pinFeatures = state.photoPins.map(pin => ({ type: 'Feature', geometry: { type: 'Point', coordinates: pin.coords }, properties: { title: pin.title, image_url: pin.imageURL || 'local_data', category: pin.category } }));
+    const routeFeature = { type: 'Feature', geometry: { type: 'LineString', coordinates: state.routeCoordinates }, properties: {} };
+    const geojson = { type: 'FeatureCollection', features: [...pinFeatures, routeFeature] };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojson, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", fileName);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    document.getElementById('dataModal').style.display = 'none';
+}
+
+export {
+    checkAndClearOldData,
+    publishRoute,
+    saveSession,
+    loadSession,
+    populatePublishedRoutesList,
+    deletePublishedRoute,
+    loadProfileForEditing,
+    saveProfile,
+    handleAccountDeletion,
+    handleMeetupSubmit,
+    exportGeoJSON
+};
 
