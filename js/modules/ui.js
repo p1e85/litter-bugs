@@ -434,3 +434,42 @@ export function initializeUI() {
         elements.termsModal.style.display = 'flex';
     }
 }
+
+/**
+ * Updates the UI to reflect the user's login status.
+ * This function must be exported so it can be called from auth.js.
+ * @param {boolean} isLoggedIn - Whether the user is logged in.
+ * @param {string} [username] - The user's name to display.
+ */
+export function updateLoggedInStatusUI(isLoggedIn, username = '') {
+    // Get references to all the UI elements that change
+    const userStatus = document.getElementById('userStatus');
+    const loggedInContent = document.getElementById('loggedInContent');
+    const guestContent = document.getElementById('guestContent');
+    const userEmailSpan = document.getElementById('userEmail');
+    const authModal = document.getElementById('authModal');
+    const publishBtn = document.getElementById('publishBtn');
+    const managePublicationsBtn = document.getElementById('managePublicationsBtn');
+    const editProfileBtn = document.getElementById('editProfileBtn');
+
+    // This container is always visible once the terms are accepted
+    if (userStatus) userStatus.style.display = 'flex';
+
+    if (isLoggedIn) {
+        // --- UI State for a Logged-In User ---
+        if (userEmailSpan) userEmailSpan.textContent = `Logged in as: ${username}`;
+        if (loggedInContent) loggedInContent.style.display = 'flex';
+        if (guestContent) guestContent.style.display = 'none';
+        if (authModal) authModal.style.display = 'none'; // Close the login modal if it's open
+        if (publishBtn) publishBtn.style.display = 'block';
+        if (managePublicationsBtn) managePublicationsBtn.style.display = 'block';
+        if (editProfileBtn) editProfileBtn.style.display = 'block';
+    } else {
+        // --- UI State for a Guest User ---
+        if (loggedInContent) loggedInContent.style.display = 'none';
+        if (guestContent) guestContent.style.display = 'block';
+        if (publishBtn) publishBtn.style.display = 'none';
+        if (managePublicationsBtn) managePublicationsBtn.style.display = 'none';
+        if (editProfileBtn) editProfileBtn.style.display = 'none';
+    }
+}
