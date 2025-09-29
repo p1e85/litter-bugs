@@ -2,12 +2,12 @@
 // This module contains all logic directly related to the Mapbox GL JS library.
 // It handles map initialization, layers, markers, user location, and POI interactions.
 
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import * as state from './state.js';
 import { mapStyles, ZOOM_THRESHOLD } from './config.js';
 import { createPinPopup, openMeetupModal, openViewMeetupsModal, showCleanupSummary } from './ui.js';
 import { convertRouteFromFirestore, convertPinsFromFirestore } from './data.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const db = getFirestore();
 const storage = getStorage();
