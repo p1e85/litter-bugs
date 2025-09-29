@@ -228,21 +228,6 @@ export function openViewMeetupsModal(poiName) {
     });
 }
 
-export function validateMeetupForm() {
-    const title = document.getElementById('meetupTitleInput').value.trim();
-    const description = document.getElementById('meetupDescriptionInput').value.trim();
-    const safetyChecked = document.getElementById('safetyCheckbox').checked;
-    const createBtn = document.getElementById('createMeetupBtn');
-    const profanityWarning = document.getElementById('profanityWarning');
-    const hasProfanity = profanityList.some(word => title.toLowerCase().includes(word) || description.toLowerCase().includes(word));
-    if (hasProfanity) {
-        profanityWarning.style.display = 'block';
-    } else {
-        profanityWarning.style.display = 'none';
-    }
-    createBtn.disabled = !(title && description && safetyChecked && !hasProfanity);
-}
-
 export function showCleanupSummary() {
     if (!state.trackingStartTime) return;
     const durationMs = new Date() - state.trackingStartTime;
