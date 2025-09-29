@@ -1,7 +1,3 @@
-// --- Main Application Entry Point ---
-// This file initializes the app and sets up all the event listeners.
-// It imports functions from the specialized modules.
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -9,12 +5,10 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { firebaseConfig } from './modules/config.js';
 import * as state from './modules/state.js';
 import { handleSignUp, handleLogIn } from './modules/auth.js';
-import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm, showCleanupSummary, shareCleanupResults, createPinPopup, openMeetupModal, openViewMeetupsModal } from './modules/ui.js';
-import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView, setupPoiClickListeners } from './modules/map.js';
-import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit, populateLocalSessionList } from './modules/data.js';
+import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm, showCleanupSummary, shareCleanupResults, populateLocalSessionList, populateSessionList } from './modules/ui.js';
+import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView } from './modules/map.js';
+import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit } from './modules/data.js';
 
-
-// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -24,7 +18,6 @@ state.setAuth(auth);
 state.setStorage(storage);
 console.log("Firebase Initialized!");
 
-// --- Main App Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     
     checkAndClearOldData();
