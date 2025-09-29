@@ -411,3 +411,24 @@ export async function populateSessionList() {
     } catch (error) { console.error("Error fetching sessions:", error); sessionList.innerHTML = '<li>Could not load sessions.</li>'; }
 }
 
+/**
+ * Main initializer for the entire UI. This function should be exported.
+ */
+export function initializeUI() {
+    // 1. Create the map
+    initializeMap();
+
+    // 2. Start listening for user login/logout changes
+    initializeAuthListener();
+
+    // 3. Attach all the button click listeners
+    attachEventListeners();
+
+    // 4. Check if the user has already accepted the terms
+    if (sessionStorage.getItem('termsAccepted')) {
+        elements.termsModal.style.display = 'none';
+        document.getElementById('userStatus').style.display = 'flex';
+    } else {
+        elements.termsModal.style.display = 'flex';
+    }
+}
