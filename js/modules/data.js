@@ -111,19 +111,6 @@ export function deleteLocalSession(sessionIndex) {
     alert("Session deleted.");
 }
 
-export function loadSpecificLocalSession(sessionIndex) {
-    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
-    const sessionData = guestSessions[sessionIndex];
-    if (sessionData) {
-        map.clearCurrentSession();
-        const convertedData = { ...sessionData, pins: convertPinsFromFirestore(sessionData.pins), route: convertRouteFromFirestore(sessionData.route) };
-        map.displaySessionData(convertedData);
-        alert(`Session "${sessionData.sessionName}" loaded!`);
-        document.getElementById('localSessionsModal').style.display = 'none';
-        document.getElementById('centerOnRouteBtn').classList.remove('disabled');
-    }
-}
-
 export async function deletePrivateSession(sessionId) {
     try {
         await deleteDoc(doc(db, "users", state.currentUser.uid, "privateSessions", sessionId));
