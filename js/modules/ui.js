@@ -8,9 +8,10 @@ import { state } from './config.js';
 import { allBadges, profanityList } from './config.js';
 import { checkAndClearOldData, calculateRouteDistance } from './utils.js';
 import { db } from './firebase.js';
-import { saveSession, loadSession, exportGeoJSON } from './data.js'; // This is correct
+import { saveSession, loadSession, exportGeoJSON } from './data.js'; 
 import { initializeMap, changeMapStyle, centerOnRoute } from './map.js';
 import { initializeAuthListener, handleSignUp, handleLogIn, handleLogOut, handleAccountDeletion } from './auth.js';
+import { findMe, toggleTracking, startTracking, handlePhoto, shareCleanupResults } from './tracking.js';
 
 // --- DOM Element Selection ---
 const elements = {
