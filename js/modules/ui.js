@@ -449,7 +449,7 @@ export function attachEventListeners() {
  * Adds listeners to close modals when clicking the close button or outside the modal content.
  */
 export function addAllModalCloseListeners() {
-    const allModals = Object.values(elements).filter(el => el && el.classList.contains('modal-overlay'));
+    const allModals = Object.values(elements).filter(el => el && el.classList && el.classList.contains('modal-overlay'));
     allModals.forEach(modal => {
         // Close on 'X' button click
         const closeBtn = modal.querySelector('.close-btn');
