@@ -4,7 +4,7 @@
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, orderBy, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import * as state from './state.js';
-import { db, auth } from './firebase.js';
+import { db } from './firebase.js';
 import * as ui from './ui.js';
 import * as map from './map.js';
 
