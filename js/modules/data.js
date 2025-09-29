@@ -115,6 +115,30 @@ export async function loadSession() {
     document.getElementById('sessionsModal').style.display = 'flex';
 }
 
+export function populateLocalSessionList() {
+    const localSessionList = document.getElementById('localSessionList');
+    const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+    localSessionList.innerHTML = '';
+    if (guestSessions.length === 0) { localSessionList.innerHTML = '<li>No locally saved sessions found.</li>'; return; }
+    guestSessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach((sessionData, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<div><span>${sessionData.sessionName}</span><br><small class="session-date">${new Date(sessionData.timestamp).toLocaleDateString()}</small></div><button class="delete-session-btn">Delete</button>`;
+        li.querySelector('div').addEventListener('click', () => loadSpecificLocalSession(index));
+        li.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); deleteLocalSession(index, sessionData.sessionName); });
+        localSessionList.appendChild(li);
+    });
+}
+
+export function deleteLocalSession(sessionIndex, sessionName) {
+    if (confirm(`Are you sure you want to delete "${sessionName}"?`)) {
+        let guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
+        guestSessions.splice(sessionIndex, 1);
+        localStorage.setItem('guestSessions', JSON.stringify(guestSessions));
+        alert("Session deleted.");
+        populateLocalSessionList();
+    }
+}
+
 export async function populatePublishedRoutesList() {
     const publishedRoutesList = document.getElementById('publishedRoutesList');
     publishedRoutesList.innerHTML = '<li>Loading your publications...</li>';
