@@ -113,6 +113,22 @@ export function updateAuthModalUI() {
         !(isEmailValid && isPasswordValid);
 }
 
+/**
+ * Validates the sign-up/login form and enables/disables the action button.
+ */
+export function validateSignUpForm() {
+    const isEmailValid = elements.emailInput.value.includes('@');
+    const isPasswordValid = elements.passwordInput.value.length >= 6;
+    const isUsernameValid = elements.usernameInput.value.trim().length >= 3;
+    const isAgeChecked = elements.ageCheckbox.checked;
+
+    if (state.isSignUpMode) {
+        elements.authActionBtn.disabled = !(isEmailValid && isPasswordValid && isUsernameValid && isAgeChecked);
+    } else {
+        elements.authActionBtn.disabled = !(isEmailValid && isPasswordValid);
+    }
+}
+
 export async function showPublicProfile(userId) {
     if (!userId) return;
     try {
@@ -506,7 +522,7 @@ export function initializeUI() {
  * Attaches all event listeners to the DOM elements. This is a private helper
  * function called by initializeUI.
  */
-function attachEventListeners() {
+export function attachEventListeners() {
     // --- Auth Flow & Terms ---
     elements.termsCheckbox.addEventListener('change', () => elements.agreeBtn.disabled = !elements.termsCheckbox.checked);
     elements.agreeBtn.addEventListener('click', () => {
@@ -638,7 +654,7 @@ function attachEventListeners() {
 /**
  * Adds listeners to close modals when clicking the close button or outside the modal content.
  */
-function addAllModalCloseListeners() {
+export function addAllModalCloseListeners() {
     const allModals = Object.values(elements).filter(el => el && el.classList.contains('modal-overlay'));
     allModals.forEach(modal => {
         // Close on 'X' button click
@@ -699,3 +715,5 @@ export function updateLoggedInStatusUI(isLoggedIn, username = '') {
         if (editProfileBtn) editProfileBtn.style.display = 'none';
     }
 }
+
+
