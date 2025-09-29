@@ -277,14 +277,38 @@
             <button id="exportBtn" class="modal-button export">Export as GeoJSON</button>
         </div>
     </div>
+
+    <!-- Saved Cloud Sessions Modal -->
     <div id="sessionsModal" class="modal">
-        <!-- Cloud Sessions List -->
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Load a Private Session</h2>
+            <p>Select a previously saved session to load it onto the map.</p>
+            <ul id="sessionList" class="session-list"></ul>
+        </div>
     </div>
+
+    <!-- Saved Local Sessions Modal -->
     <div id="localSessionsModal" class="modal">
-        <!-- Local Sessions List -->
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Load a Local Session</h2>
+            <p>Select a session saved on this browser to load it.</p>
+            <p class="disclaimer-text">
+                <strong>Note:</strong> As a guest, sessions are saved only to this browser. They will be lost if you clear your cache or switch devices. Sign up for a free account to save your data permanently!
+            </p>
+            <ul id="localSessionList" class="session-list"></ul>
+        </div>
     </div>
+
+    <!-- Published Routes Modal -->
     <div id="publishedRoutesModal" class="modal">
-        <!-- Published Routes List -->
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Manage My Published Routes</h2>
+            <p>Here you can view and permanently delete your contributions to the community map.</p>
+            <ul id="publishedRoutesList" class="session-list"></ul>
+        </div>
     </div>
 
     <!-- JavaScript Libraries -->
