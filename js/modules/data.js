@@ -284,3 +284,10 @@ export function exportGeoJSON() {
     document.getElementById('dataModal').style.display = 'none';
 }
 
+export {
+    checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON,
+    populatePublishedRoutesList, deletePublishedRoute, loadProfileForEditing, saveProfile,
+    handleAccountDeletion, handleMeetupSubmit, deleteLocalSession, loadSpecificLocalSession,
+    deletePrivateSession, loadSpecificSession,
+    convertRouteForFirestore, convertRouteFromFirestore, convertPinsForFirestore, convertPinsFromFirestore
+};
