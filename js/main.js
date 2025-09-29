@@ -1,3 +1,7 @@
+// --- Main Application Entry Point ---
+// This file initializes the app and sets up all the event listeners.
+// It imports functions from the specialized modules.
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -9,17 +13,22 @@ import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetch
 import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView, setupPoiClickListeners } from './modules/map.js';
 import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit } from './modules/data.js';
 
+// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
-const db = getFirestore();
-const auth = getAuth();
-const storage = getStorage();
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
 state.setDb(db);
 state.setAuth(auth);
 state.setStorage(storage);
 console.log("Firebase Initialized!");
 
+// --- Main App Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    
     checkAndClearOldData();
+    
+    // --- Get All Element References ---
     const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
@@ -90,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuModal = document.getElementById('menuModal');
     const menuModalCloseBtn = menuModal.querySelector('.close-btn');
 
+    // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
         state.setCurrentUser(user);
         const userStatus = document.getElementById('userStatus');
@@ -141,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Initial UI Setup ---
     if (sessionStorage.getItem('termsAccepted')) {
         termsModal.style.display = 'none';
         document.getElementById('userStatus').style.display = 'flex';
@@ -148,8 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
         termsModal.style.display = 'flex';
     }
 
+    // --- Initialize Map ---
     initializeMap('map');
 
+    // --- Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
