@@ -324,33 +324,6 @@ export function showCleanupSummary() {
     state.setTrackingStartTime(null);
 }
 
-export async function shareCleanupResults() {
-    const distance = document.getElementById('summaryDistance').textContent;
-    const pins = document.getElementById('summaryPins').textContent;
-    const shareText = `I just cleaned up ${distance} and pinned ${pins} items with the Litter Bugs app! Join the movement and help clean our planet. #LitterBugs #Cleanup`;
-    const shareData = {
-        title: 'My Litter Bugs Cleanup!',
-        text: shareText,
-        url: 'https://www.litter-bugs.com/'
-    };
-    if (navigator.share) {
-        try {
-            await navigator.share(shareData);
-            console.log('Cleanup shared successfully!');
-        } catch (err) {
-            console.error('Error sharing:', err);
-        }
-    } else {
-        try {
-            await navigator.clipboard.writeText(shareText + " " + shareData.url);
-            alert('Cleanup stats copied to clipboard!');
-        } catch (err) {
-            console.error('Failed to copy: ', err);
-            alert('Sharing is not supported on this browser.');
-        }
-    }
-}
-
 export async function fetchAndDisplayLeaderboard(metric) {
     const leaderboardList = document.getElementById('leaderboardList');
     if (!leaderboardList) return;
