@@ -12,6 +12,73 @@ import { saveSession, loadSession, exportGeoJSON } from './data.js'; // This is 
 import { initializeMap, changeMapStyle, centerOnRoute } from './map.js';
 import { initializeAuthListener } from './auth.js';
 
+// --- DOM Element Selection ---
+const elements = {
+    // Modals
+    termsModal: document.getElementById('termsModal'),
+    authModal: document.getElementById('authModal'),
+    dataModal: document.getElementById('dataModal'),
+    sessionsModal: document.getElementById('sessionsModal'),
+    localSessionsModal: document.getElementById('localSessionsModal'),
+    infoModal: document.getElementById('infoModal'),
+    publishedRoutesModal: document.getElementById('publishedRoutesModal'),
+    profileModal: document.getElementById('profileModal'),
+    publicProfileModal: document.getElementById('publicProfileModal'),
+    safetyModal: document.getElementById('safetyModal'),
+    summaryModal: document.getElementById('summaryModal'),
+    leaderboardModal: document.getElementById('leaderboardModal'),
+    achievementModal: document.getElementById('achievementModal'),
+    meetupModal: document.getElementById('meetupModal'),
+    viewMeetupsModal: document.getElementById('viewMeetupsModal'),
+    menuModal: document.getElementById('menuModal'),
+
+    // Buttons
+    agreeBtn: document.getElementById('agreeBtn'),
+    skipBtn: document.getElementById('skipBtn'),
+    findMeBtn: document.getElementById('findMeBtn'),
+    trackBtn: document.getElementById('trackBtn'),
+    pictureBtn: document.getElementById('pictureBtn'),
+    dataBtn: document.getElementById('dataBtn'),
+    saveBtn: document.getElementById('saveBtn'),
+    loadBtn: document.getElementById('loadBtn'),
+    exportBtn: document.getElementById('exportBtn'),
+    communityBtn: document.getElementById('communityBtn'),
+    publishBtn: document.getElementById('publishBtn'),
+    loginSignupBtn: document.getElementById('loginSignupBtn'),
+    infoBtn: document.getElementById('infoBtn'),
+    authActionBtn: document.getElementById('authActionBtn'),
+    managePublicationsBtn: document.getElementById('managePublicationsBtn'),
+    editProfileBtn: document.getElementById('editProfileBtn'),
+    saveProfileBtn: document.getElementById('saveProfileBtn'),
+    deleteAccountBtn: document.getElementById('deleteAccountBtn'),
+    safetyModalOkBtn: document.getElementById('safetyModalOkBtn'),
+    changeStyleBtn: document.getElementById('changeStyleBtn'),
+    centerOnRouteBtn: document.getElementById('centerOnRouteBtn'),
+    summaryOkBtn: document.getElementById('summaryOkBtn'),
+    leaderboardBtn: document.getElementById('leaderboardBtn'),
+    achievementOkBtn: document.getElementById('achievementOkBtn'),
+    createMeetupBtn: document.getElementById('createMeetupBtn'),
+    shareBtn: document.getElementById('shareBtn'),
+    menuBtn: document.getElementById('menuBtn'),
+    logoutBtn: document.getElementById('logoutBtn'),
+
+    // Inputs & Forms
+    cameraInput: document.getElementById('cameraInput'),
+    termsCheckbox: document.getElementById('termsCheckbox'),
+    ageCheckbox: document.getElementById('ageCheckbox'),
+    emailInput: document.getElementById('emailInput'),
+    passwordInput: document.getElementById('passwordInput'),
+    usernameInput: document.getElementById('usernameInput'),
+    safetyCheckbox: document.getElementById('safetyCheckbox'),
+    meetupTitleInput: document.getElementById('meetupTitleInput'),
+    meetupDescriptionInput: document.getElementById('meetupDescriptionInput'),
+
+    // Links & Other
+    viewTermsLink: document.getElementById('viewTermsLink'),
+    leaderboardTabs: document.querySelectorAll('.leaderboard-tab'),
+    leaderboardList: document.getElementById('leaderboardList'),
+};
+
 export function updateAuthModalUI() {
     const authForm = document.getElementById('authForm');
     const authTitle = document.getElementById('authTitle');
