@@ -436,6 +436,165 @@ export function initializeUI() {
 }
 
 /**
+ * Attaches all event listeners to the DOM elements. This is a private helper
+ * function called by initializeUI.
+ */
+function attachEventListeners() {
+    // --- Auth Flow & Terms ---
+    elements.termsCheckbox.addEventListener('change', () => elements.agreeBtn.disabled = !elements.termsCheckbox.checked);
+    elements.agreeBtn.addEventListener('click', () => {
+        elements.termsModal.style.display = 'none';
+        sessionStorage.setItem('termsAccepted', 'true');
+        document.getElementById('userStatus').style.display = 'flex';
+        if (!state.currentUser) elements.authModal.style.display = 'flex';
+    });
+    elements.loginSignupBtn.addEventListener('click', () => elements.authModal.style.display = 'flex');
+    elements.skipBtn.addEventListener('click', () => elements.authModal.style.display = 'none');
+    elements.authModal.addEventListener('click', (e) => {
+        if (e.target.id === 'switchAuthModeLink') {
+            e.preventDefault();
+            state.isSignUpMode = !state.isSignUpMode;
+            updateAuthModalUI();
+        }
+    });
+    elements.authActionBtn.addEventListener('click', async () => {
+        if (state.isSignUpMode) await handleSignUp();
+        else await handleLogIn();
+    });
+    elements.logoutBtn.addEventListener('click', handleLogOut);
+    elements.emailInput.addEventListener('input', validateSignUpForm);
+    elements.passwordInput.addEventListener('input', validateSignUpForm);
+    elements.usernameInput.addEventListener('input', validateSignUpForm);
+    elements.ageCheckbox.addEventListener('change', validateSignUpForm);
+    elements.deleteAccountBtn.addEventListener('click', handleAccountDeletion);
+
+    // --- Main Map Controls ---
+    elements.findMeBtn.addEventListener('click', findMe);
+    elements.trackBtn.addEventListener('click', toggleTracking);
+    elements.pictureBtn.addEventListener('click', () => elements.cameraInput.click());
+    elements.cameraInput.addEventListener('change', handlePhoto);
+    elements.changeStyleBtn.addEventListener('click', changeMapStyle);
+    elements.communityBtn.addEventListener('click', toggleCommunityView);
+    elements.centerOnRouteBtn.addEventListener('click', () => {
+        if (elements.centerOnRouteBtn.classList.contains('disabled')) {
+            alert("Please load a route first to use this feature.");
+        } else {
+            centerOnRoute();
+        }
+    });
+
+    // --- Menu & Modals ---
+    elements.menuBtn.addEventListener('click', () => elements.menuModal.style.display = 'flex');
+    elements.dataBtn.addEventListener('click', () => {
+        const hasRoute = state.routeCoordinates.length > 0 || state.photoPins.length > 0;
+        elements.menuModal.style.display = 'none';
+        elements.centerOnRouteBtn.classList.toggle('disabled', !hasRoute);
+        elements.dataModal.style.display = 'flex';
+    });
+    elements.infoBtn.addEventListener('click', () => elements.infoModal.style.display = 'flex');
+    elements.viewTermsLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        elements.infoModal.style.display = 'none';
+        elements.termsModal.style.display = 'flex';
+    });
+    elements.safetyModalOkBtn.addEventListener('click', () => {
+        elements.safetyModal.style.display = 'none';
+        startTracking();
+    });
+
+    // --- Data Management (Save, Load, Export) ---
+    elements.saveBtn.addEventListener('click', saveSession);
+    elements.loadBtn.addEventListener('click', () => {
+        elements.dataModal.style.display = 'none';
+        loadSession();
+    });
+    elements.exportBtn.addEventListener('click', exportGeoJSON);
+    elements.publishBtn.addEventListener('click', publishRoute);
+
+    // --- Profile & Publications ---
+    elements.managePublicationsBtn.addEventListener('click', () => {
+        if (!state.currentUser) { alert("You must be logged in to manage your publications."); return; }
+        elements.dataModal.style.display = 'none';
+        populatePublishedRoutesList();
+        elements.publishedRoutesModal.style.display = 'flex';
+    });
+    elements.editProfileBtn.addEventListener('click', () => {
+        if (!state.currentUser) { alert("You must be logged in to edit your profile."); return; }
+        elements.dataModal.style.display = 'none';
+        loadProfileForEditing();
+        elements.profileModal.style.display = 'flex';
+    });
+    elements.saveProfileBtn.addEventListener('click', saveProfile);
+
+    // --- Leaderboard & Stats ---
+    elements.leaderboardBtn.addEventListener('click', () => {
+        elements.leaderboardModal.style.display = 'flex';
+        document.getElementById('leaderboardList').style.display = 'block';
+        document.getElementById('myStatsContainer').style.display = 'none';
+        elements.leaderboardTabs.forEach(t => t.classList.remove('active'));
+        document.querySelector('.leaderboard-tab[data-metric="totalPins"]').classList.add('active');
+        fetchAndDisplayLeaderboard('totalPins');
+    });
+    elements.leaderboardTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            elements.leaderboardTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const isMyStats = tab.id === 'myStatsBtn';
+            document.getElementById('leaderboardList').style.display = isMyStats ? 'none' : 'block';
+            document.getElementById('myStatsContainer').style.display = isMyStats ? 'block' : 'none';
+            if (isMyStats) fetchAndDisplayMyStats();
+            else fetchAndDisplayLeaderboard(tab.dataset.metric);
+        });
+    });
+    elements.leaderboardList.addEventListener('click', (e) => {
+        if (e.target && e.target.classList.contains('leaderboard-profile-link')) {
+            e.preventDefault();
+            const userId = e.target.closest('li').dataset.userid;
+            if (userId) {
+                elements.leaderboardModal.style.display = 'none';
+                showPublicProfile(userId);
+            }
+        }
+    });
+
+    // --- Meetups ---
+    elements.safetyCheckbox.addEventListener('change', validateMeetupForm);
+    elements.meetupTitleInput.addEventListener('input', validateMeetupForm);
+    elements.meetupDescriptionInput.addEventListener('input', validateMeetupForm);
+    elements.createMeetupBtn.addEventListener('click', handleMeetupSubmit);
+
+    // --- General/Global Listeners ---
+    elements.shareBtn.addEventListener('click', shareCleanupResults);
+    addAllModalCloseListeners();
+}
+
+/**
+ * Adds listeners to close modals when clicking the close button or outside the modal content.
+ */
+function addAllModalCloseListeners() {
+    const allModals = Object.values(elements).filter(el => el && el.classList.contains('modal-overlay'));
+    allModals.forEach(modal => {
+        // Close on 'X' button click
+        const closeBtn = modal.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        }
+        // Close on OK button click (for single-action modals)
+        const okBtn = modal.querySelector('.ok-btn');
+        if (okBtn) {
+            okBtn.addEventListener('click', () => modal.style.display = 'none');
+        }
+    });
+
+    // Close on overlay click
+    window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    });
+}
+
+/**
  * Updates the UI to reflect the user's login status.
  * This function must be exported so it can be called from auth.js.
  * @param {boolean} isLoggedIn - Whether the user is logged in.
