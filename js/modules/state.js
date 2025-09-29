@@ -1,8 +1,6 @@
 // --- State Module ---
 // This file acts as a centralized store for the application's shared, mutable state.
-// Other modules will import these variables to read their current values or import the
-// setter functions to update them. This prevents state from being scattered across
-// the entire application.
+// Other modules will import these variables to read or modify them.
 
 // --- Firebase Service Handles ---
 // These will be initialized in main.js and set here for other modules to use.
