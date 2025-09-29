@@ -12,6 +12,7 @@ import { saveSession, loadSession, exportGeoJSON } from './data.js';
 import { initializeMap, changeMapStyle, centerOnRoute } from './map.js';
 import { initializeAuthListener, handleSignUp, handleLogIn, handleLogOut, handleAccountDeletion } from './auth.js';
 import { findMe, toggleTracking, startTracking, handlePhoto, shareCleanupResults } from './tracking.js';
+import { toggleCommunityView, publishRoute, populatePublishedRoutesList, loadProfileForEditing, saveProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, showPublicProfile, handleMeetupSubmit, validateMeetupForm } from './community.js';
 
 // --- DOM Element Selection ---
 const elements = {
