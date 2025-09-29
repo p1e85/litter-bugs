@@ -3,11 +3,12 @@ import { state } from './config.js';
 import { createAndAddMarker, updateUserPinsSource } from './map.js';
 import { calculateRouteDistance } from './utils.js';
 import { clearCurrentSession } from './data.js';
-import imageCompression from '../framework/browser-image-compression.js';
+//import imageCompression from '../framework/browser-image-compression.js';
 
 // NOTE: This imports the image-compression library from a CDN.
 // For a production app, you might want to host this file yourself.
-//import imageCompression from 'https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js';
+// This is a stable link from the unpkg CDN
+import imageCompression from 'https://unpkg.com/browser-image-compression@2.0.2/dist/browser-image-compression.esm.js';
 /**
  * Finds the user's current location and places a one-time marker on the map.
  */
