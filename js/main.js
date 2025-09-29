@@ -11,7 +11,8 @@ import * as state from './modules/state.js';
 import { handleSignUp, handleLogIn } from './modules/auth.js';
 import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm, showCleanupSummary, shareCleanupResults, createPinPopup, openMeetupModal, openViewMeetupsModal } from './modules/ui.js';
 import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView, setupPoiClickListeners } from './modules/map.js';
-import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit } from './modules/data.js';
+import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit, populateLocalSessionList } from './modules/data.js';
+
 
 // --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
