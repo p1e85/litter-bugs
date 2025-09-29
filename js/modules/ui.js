@@ -10,7 +10,7 @@ import { checkAndClearOldData, calculateRouteDistance } from './utils.js';
 import { db } from './firebase.js';
 import { saveSession, loadSession, exportGeoJSON } from './data.js'; // This is correct
 import { initializeMap, changeMapStyle, centerOnRoute } from './map.js';
-import { initializeAuthListener } from './auth.js';
+import { initializeAuthListener, handleSignUp, handleLogIn, handleLogOut, handleAccountDeletion } from './auth.js';
 
 // --- DOM Element Selection ---
 const elements = {
