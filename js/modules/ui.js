@@ -243,45 +243,6 @@ export function showCleanupSummary() {
     state.setTrackingStartTime(null);
 }
 
-export async function fetchAndDisplayLeaderboard(metric) {
-    const leaderboardList = document.getElementById('leaderboardList');
-    if (!leaderboardList) return;
-    leaderboardList.innerHTML = '<li>Loading...</li>';
-    try {
-        const profilesRef = collection(db, "publicProfiles");
-        const q = query(profilesRef, orderBy(metric, "desc"), limit(10));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            leaderboardList.innerHTML = '<li>No user data yet. Be the first!</li>';
-            return;
-        }
-        leaderboardList.innerHTML = '';
-        let rank = 1;
-        querySnapshot.forEach(doc => {
-            const profileData = doc.data();
-            const li = document.createElement('li');
-            li.dataset.userid = doc.id;
-            const score = metric === 'totalDistance'
-                ? `${((profileData.totalDistance || 0) * 0.000621371).toFixed(2)} mi`
-                : (profileData.totalPins || 0);
-            li.innerHTML = `
-                <span class="leaderboard-rank">${rank}.</span>
-                <span class="leaderboard-name"><a href="#" class="leaderboard-profile-link">${profileData.username}</a></span>
-                <span class="leaderboard-score">${score}</span>
-            `;
-            leaderboardList.appendChild(li);
-            rank++;
-        });
-    } catch (error) {
-        console.error("Error fetching leaderboard:", error);
-        leaderboardList.innerHTML = '<li>Could not load leaderboard data.</li>';
-        if (error.code === 'failed-precondition') {
-            alert("Leaderboard data requires a new database index. Please check the browser console for a link to create it automatically.");
-        }
-    }
-}
-
 export async function fetchAndDisplayMyStats() {
     const myStatsContainer = document.getElementById('myStatsContainer');
     myStatsContainer.innerHTML = '';
