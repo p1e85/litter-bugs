@@ -10,6 +10,7 @@ import { checkAndClearOldData, calculateRouteDistance } from './utils.js';
 import { db } from './firebase.js';
 import { saveSession, loadSession, exportGeoJSON } from './data.js'; // This is correct
 import { initializeMap, changeMapStyle, centerOnRoute } from './map.js';
+import { initializeAuthListener } from './auth.js';
 
 export function updateAuthModalUI() {
     const authForm = document.getElementById('authForm');
