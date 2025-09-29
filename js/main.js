@@ -1,28 +1,14 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { firebaseConfig } from './modules/config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { auth, db } from './modules/firebase.js';
 import * as state from './modules/state.js';
 import { handleSignUp, handleLogIn } from './modules/auth.js';
 import { updateAuthModalUI, showPublicProfile, fetchAndDisplayLeaderboard, fetchAndDisplayMyStats, validateMeetupForm, showCleanupSummary, shareCleanupResults, populateLocalSessionList, populateSessionList } from './modules/ui.js';
 import { initializeMap, changeMapStyle, findMe, toggleTracking, startTracking, centerOnRoute, handlePhoto, toggleCommunityView } from './modules/map.js';
 import { checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON, populatePublishedRoutesList, loadProfileForEditing, saveProfile, handleAccountDeletion, handleMeetupSubmit } from './modules/data.js';
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
-state.setDb(db);
-state.setAuth(auth);
-state.setStorage(storage);
-console.log("Firebase Initialized!");
-
 document.addEventListener('DOMContentLoaded', () => {
-    
     checkAndClearOldData();
-    
-    // --- Get All Element References ---
     const termsModal = document.getElementById('termsModal');
     const authModal = document.getElementById('authModal');
     const agreeBtn = document.getElementById('agreeBtn');
@@ -93,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuModal = document.getElementById('menuModal');
     const menuModalCloseBtn = menuModal.querySelector('.close-btn');
 
-    // --- Firebase Auth State Listener ---
     onAuthStateChanged(auth, async (user) => {
         state.setCurrentUser(user);
         const userStatus = document.getElementById('userStatus');
@@ -145,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Initial UI Setup ---
     if (sessionStorage.getItem('termsAccepted')) {
         termsModal.style.display = 'none';
         document.getElementById('userStatus').style.display = 'flex';
@@ -153,10 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
         termsModal.style.display = 'flex';
     }
 
-    // --- Initialize Map ---
     initializeMap('map');
 
-    // --- Event Listeners ---
     const validateSignUpForm = () => {
         const isEmailValid = emailInput.value.includes('@');
         const isPasswordValid = passwordInput.value.length >= 6;
