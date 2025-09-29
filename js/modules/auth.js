@@ -1,17 +1,81 @@
-// --- Authentication Module ---
-// This module handles all Firebase Authentication logic, such as creating new users and signing them in.
-
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// CRITICAL FIX: Import the already-initialized auth and db services from our central firebase.js module.
-import { auth, db } from './firebase.js';
+import {
+    auth,
+    db,
+    onAuthStateChanged,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    deleteUser,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    collection,
+    query,
+    where,
+    getDocs,
+    deleteDoc
+} from './firebase.js';
+import { state } from './config.js';
+import { updateAuthModalUI, updateLoggedInStatusUI } from './ui.js';
 
 /**
- * Handles the user sign-up process. It creates a new user in Firebase Authentication
- * and then creates their corresponding private 'user' and public 'publicProfile' documents in Firestore.
+ * Sets up the listener that responds to changes in the user's login state.
+ * This is a core function that updates the UI and application state when a user
+ * logs in or out.
  */
-async function handleSignUp() {
+export function initializeAuthListener() {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            state.currentUser = user;
+            try {
+                // Check for and create user profile documents if they don't exist
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (userDocSnap.exists() && userDocSnap.data().totalPins === undefined) {
+                    await updateDoc(userDocRef, { totalPins: 0, totalDistance: 0, totalRoutes: 0 });
+                }
+
+                const publicProfileRef = doc(db, "publicProfiles", user.uid);
+                const publicProfileSnap = await getDoc(publicProfileRef);
+                let username;
+
+                if (publicProfileSnap.exists()) {
+                    username = publicProfileSnap.data().username;
+                } else {
+                    console.log("User profile missing! Creating a default one.");
+                    const defaultUsername = user.email.split('@')[0];
+                    await setDoc(publicProfileRef, {
+                        username: defaultUsername,
+                        bio: "This user is new to Litter Bugs!",
+                        location: "",
+                        buyMeACoffeeLink: "",
+                        badges: {},
+                        totalPins: 0,
+                        totalDistance: 0,
+                        totalRoutes: 0
+                    });
+                    username = defaultUsername;
+                }
+                // Update the UI to reflect the logged-in state
+                updateLoggedInStatusUI(true, username);
+
+            } catch (error) {
+                console.error("Error fetching or updating user profile:", error);
+                updateLoggedInStatusUI(false); // Fallback to logged-out state on error
+            }
+        } else {
+            state.currentUser = null;
+            // Update the UI to reflect the logged-out state
+            updateLoggedInStatusUI(false);
+        }
+    });
+}
+
+/**
+ * Handles the user sign-up process.
+ */
+export async function handleSignUp() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     const username = document.getElementById('usernameInput').value;
@@ -31,33 +95,33 @@ async function handleSignUp() {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const userId = userCredential.user.uid;
-
-        await setDoc(doc(db, "users", userId), { 
-            email: userCredential.user.email, 
-            totalPins: 0, 
-            totalDistance: 0, 
-            totalRoutes: 0 
+        // Create a private user document for sensitive info
+        await setDoc(doc(db, "users", userId), {
+            email: userCredential.user.email,
+            totalPins: 0,
+            totalDistance: 0,
+            totalRoutes: 0
         });
-
-        await setDoc(doc(db, "publicProfiles", userId), { 
-            username: username, 
-            bio: "This user is new to Litter Bugs!", 
-            location: "", 
-            buyMeACoffeeLink: "", 
+        // Create a public profile document
+        await setDoc(doc(db, "publicProfiles", userId), {
+            username,
+            bio: "This user is new to Litter Bugs!",
+            location: "",
+            buyMeACoffeeLink: "",
             badges: {},
             totalPins: 0,
             totalDistance: 0,
             totalRoutes: 0
         });
-    } catch (error) { 
-        authError.textContent = error.message; 
+    } catch (error) {
+        authError.textContent = error.message;
     }
 }
 
 /**
  * Handles the user login process.
  */
-async function handleLogIn() {
+export async function handleLogIn() {
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     const authError = document.getElementById('authError');
@@ -70,6 +134,59 @@ async function handleLogIn() {
     }
 }
 
-// Export the functions so they can be imported and used by main.js.
-export { handleSignUp, handleLogIn };
+/**
+ * Handles the user logout process.
+ */
+export async function handleLogOut() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Error signing out:", error);
+        alert("Failed to sign out.");
+    }
+}
 
+/**
+ * Handles the permanent deletion of a user's account and all associated data.
+ */
+export async function handleAccountDeletion() {
+    if (!state.currentUser) return;
+    if (!confirm("DANGER: Are you absolutely sure you want to permanently delete your account? This action cannot be undone.")) return;
+    if (!confirm("All of your private saved sessions and public routes will be deleted forever. Are you still sure?")) return;
+
+    try {
+        const userId = state.currentUser.uid;
+        console.log("Starting account deletion for user:", userId);
+
+        // 1. Delete all private sessions
+        const privateSessionsQuery = query(collection(db, "users", userId, "privateSessions"));
+        const privateSessionsSnapshot = await getDocs(privateSessionsQuery);
+        await Promise.all(privateSessionsSnapshot.docs.map(d => deleteDoc(d.ref)));
+        console.log("Private sessions deleted.");
+
+        // 2. Delete all published routes
+        const publishedRoutesQuery = query(collection(db, "publishedRoutes"), where("userId", "==", userId));
+        const publishedRoutesSnapshot = await getDocs(publishedRoutesQuery);
+        await Promise.all(publishedRoutesSnapshot.docs.map(d => deleteDoc(d.ref)));
+        console.log("Published routes deleted.");
+
+        // 3. Delete user documents
+        await deleteDoc(doc(db, "users", userId));
+        await deleteDoc(doc(db, "publicProfiles", userId));
+        console.log("User documents deleted.");
+
+        // 4. Delete the user from Firebase Authentication
+        await deleteUser(state.currentUser);
+
+        alert("Your account and all associated data have been permanently deleted.");
+        document.getElementById('profileModal').style.display = 'none';
+
+    } catch (error) {
+        console.error("Error deleting account:", error);
+        if (error.code === 'auth/requires-recent-login') {
+            alert("This is a sensitive operation. Please log out and log back in to delete your account.");
+        } else {
+            alert("An error occurred while deleting your account.");
+        }
+    }
+}
