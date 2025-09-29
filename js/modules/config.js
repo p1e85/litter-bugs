@@ -1,6 +1,7 @@
 // --- Configuration Module ---
-// This file stores static configuration data for the application.
-// Other modules will import these constants as needed.
+// This file stores static configuration data for the application,
+// such as API keys, map styles, and game rules (like badges).
+// This makes it easy to update these values in one place.
 
 // This object contains your project's unique Firebase configuration keys.
 export const firebaseConfig = {
@@ -13,11 +14,11 @@ export const firebaseConfig = {
     measurementId: "G-SM46WXV0CN"
 };
 
-// The map zoom level at which we switch from dots to photo icons.
+// The map zoom level at which we switch from showing dots to photo icons.
 export const ZOOM_THRESHOLD = 14;
 
-// A simple blocklist of words for the client-side profanity filter.
-export const profanityList = ["word1", "word2", "word3"];
+// A basic list of words to filter from user-generated content like meetup titles.
+export const profanityList = ["word1", "word2", "word3"]; // Add inappropriate words here
 
 // An array of different map styles the user can cycle through.
 export const mapStyles = [
