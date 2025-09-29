@@ -8,7 +8,7 @@ import { state } from './config.js';
 import { allBadges, profanityList } from './config.js';
 import { checkAndClearOldData, calculateRouteDistance } from './utils.js';
 import { db } from './firebase.js';
-import { loadSpecificSession, deletePrivateSession, deleteLocalSession, loadSpecificLocalSession } from './data.js'; 
+import { saveSession, loadSession, exportGeoJSON } from './data.js'; // This is correct
 
 export function updateAuthModalUI() {
     const authForm = document.getElementById('authForm');
