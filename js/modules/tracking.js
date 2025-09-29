@@ -6,8 +6,8 @@ import { clearCurrentSession } from './data.js';
 
 // NOTE: This imports the image-compression library from a CDN.
 // For a production app, you might want to host this file yourself.
+// Replace the old import line with this one
 import imageCompression from 'https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.esm.js';
-
 /**
  * Finds the user's current location and places a one-time marker on the map.
  */
