@@ -249,16 +249,9 @@ function exportGeoJSON() {
 }
 
 export {
-    checkAndClearOldData,
-    publishRoute,
-    saveSession,
-    loadSession,
-    populatePublishedRoutesList,
-    deletePublishedRoute,
-    loadProfileForEditing,
-    saveProfile,
-    handleAccountDeletion,
-    handleMeetupSubmit,
-    exportGeoJSON
+    convertRouteForFirestore, convertRouteFromFirestore, convertPinsForFirestore, convertPinsFromFirestore,
+    checkAndClearOldData, publishRoute, saveSession, loadSession, exportGeoJSON,
+    populatePublishedRoutesList, deletePublishedRoute, loadProfileForEditing, saveProfile,
+    handleAccountDeletion, handleMeetupSubmit, deleteLocalSession, loadSpecificLocalSession,
+    deletePrivateSession, loadSpecificSession
 };
-
