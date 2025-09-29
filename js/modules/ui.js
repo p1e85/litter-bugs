@@ -243,66 +243,6 @@ export function showCleanupSummary() {
     state.setTrackingStartTime(null);
 }
 
-export async function fetchAndDisplayMyStats() {
-    const myStatsContainer = document.getElementById('myStatsContainer');
-    myStatsContainer.innerHTML = '';
-    if (!state.currentUser) {
-        myStatsContainer.innerHTML = '<p class="login-prompt">Please log in to view your personal stats.</p>';
-        return;
-    }
-    try {
-        const publicProfileRef = doc(db, "publicProfiles", state.currentUser.uid);
-        const publicProfileSnap = await getDoc(publicProfileRef);
-
-        if (!publicProfileSnap.exists()) {
-            myStatsContainer.innerHTML = '<p class="login-prompt">Could not find your profile data.</p>';
-            return;
-        }
-        const profileData = publicProfileSnap.data();
-        const distanceMiles = ((profileData.totalDistance || 0) * 0.000621371).toFixed(2);
-        let statsHTML = `
-            <div class="my-stats-grid">
-                <div class="stat-card">
-                    <div class="my-stats-value">${profileData.totalPins || 0}</div>
-                    <div class="my-stats-label">Items Pinned</div>
-                </div>
-                <div class="stat-card">
-                    <div class="my-stats-value">${distanceMiles}</div>
-                    <div class="my-stats-label">Miles Cleaned</div>
-                </div>
-                <div class="stat-card">
-                    <div class="my-stats-value">${profileData.totalRoutes || 0}</div>
-                    <div class="my-stats-label">Routes Completed</div>
-                </div>
-            </div>
-            <h4>My Achievements</h4>
-            <div class="my-stats-badges">
-                <div class="badge-container">
-        `;
-        const userBadges = profileData.badges || {};
-        let earnedBadgesCount = 0;
-        for (const badgeKey in allBadges) {
-            if (userBadges[badgeKey] === true) {
-                earnedBadgesCount++;
-                const badgeInfo = allBadges[badgeKey];
-                statsHTML += `
-                    <div class="badge-item" title="${badgeInfo.name}: ${badgeInfo.description}">
-                        ${badgeInfo.icon}
-                    </div>
-                `;
-            }
-        }
-        if (earnedBadgesCount === 0) {
-            statsHTML += '<p class="no-badges-message">You haven\'t earned any badges yet. Keep cleaning!</p>';
-        }
-        statsHTML += `</div></div>`;
-        myStatsContainer.innerHTML = statsHTML;
-    } catch (error) {
-        console.error("Error fetching your stats:", error);
-        myStatsContainer.innerHTML = '<p class="login-prompt">Could not load your stats.</p>';
-    }
-}
-
 export function populateLocalSessionList() {
     const localSessionList = document.getElementById('localSessionList');
     const guestSessions = JSON.parse(localStorage.getItem('guestSessions')) || [];
