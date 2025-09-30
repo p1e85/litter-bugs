@@ -18,7 +18,9 @@ export function initializeMap() {
         mapboxgl: mapboxgl,
         marker: false,
         placeholder: 'Search for a place',
-        autocomplete: 'off'
+        autocomplete: 'off',
+        proximity: 'ip', // Prioritize results near the user's IP address
+        types: 'country,region,place,postcode,locality,neighborhood,address,poi' // Expand search to include POIs
     });
     document.getElementById('geocoder-container').appendChild(geocoder.onAdd(state.map));
 
