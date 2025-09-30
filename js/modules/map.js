@@ -17,7 +17,8 @@ export function initializeMap() {
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl,
         marker: false,
-        placeholder: 'Search for a place'
+        placeholder: 'Search for a place',
+        autocomplete: 'off'
     });
     document.getElementById('geocoder-container').appendChild(geocoder.onAdd(state.map));
 
